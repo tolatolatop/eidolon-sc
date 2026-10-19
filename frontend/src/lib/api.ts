@@ -393,7 +393,7 @@ export async function api(path: string, init: RequestInit = {}): Promise<Respons
 
 /** The ways to sign in the backend offers, and how to reach the deployer (null if the
  * deployer gave none), which a banned user is told. */
-export type SignInOptions = { providers: Provider[]; dev_login: boolean; contact: string | null };
+export type SignInOptions = { providers: Provider[]; dev_login: boolean; private_login?: boolean; contact: string | null };
 
 /** What the landing page shows that belongs to no one character. `memory_still_url`: its act about
  * memory as one picture, for visitors who see no animation, in the stands' bucket; null unless the
@@ -406,7 +406,7 @@ export async function getSignInOptions(): Promise<SignInOptions> {
 }
 
 /** An identity the user signs in with. */
-export type SignInMethod = { provider: Provider; display_name: string; email: string | null };
+export type SignInMethod = { provider: Provider | "private"; display_name: string; email: string | null };
 
 /** `id`: who the user is, which this browser keeps their own keys apart by (see `localOwnKeys`).
  * `is_admin`: the user may enter the admin console (`/admin`).
@@ -531,6 +531,15 @@ export async function agreeToTerms(): Promise<void> {
       body: JSON.stringify({ agree_to_terms: true, at_least_13: true }),
     }),
   );
+}
+
+/** A rejected password stays on the login form; a 401 here is not an expired session. */
+export async function privateLogin(password: string): Promise<void> {
+  await expectNoContent(await fetch("/api/auth/private-login", {
+    method: "POST",
+    headers: apiHeaders({ "content-type": "application/json" }),
+    body: JSON.stringify({ password }),
+  }));
 }
 
 /** Sign in as the user with this name (development only). */

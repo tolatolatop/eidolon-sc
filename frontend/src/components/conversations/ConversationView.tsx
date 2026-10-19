@@ -46,6 +46,7 @@ import { linesOf, type Line } from "@/lib/messageLines";
 import { pastDay } from "@/lib/pastConversations";
 import { photosUsedUpText } from "@/lib/photoFailure";
 import { cn } from "@/lib/utils";
+import { isProjectSekai } from "@/lib/work";
 import { herVars } from "@/theme/herVars";
 import {
   BackIcon,
@@ -165,7 +166,7 @@ export function ConversationView({
     : inCall
       ? { tip: copy.call.expand, label: copy.call.expand, onClick: () => live?.expand(), filled: true }
       : { tip: t.callTooltip, label: t.call(character.name), disabled: !snapshot.canDial, onClick: dial };
-  const phoneKey = (
+  const phoneKey = isProjectSekai ? null : (
     <HeaderTip label={phone.tip}>
       <Button
         ref={focus.phoneKey}

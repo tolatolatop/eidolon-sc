@@ -1,3 +1,5 @@
+import { PRIVATE_WORK } from "@/lib/work";
+
 // 简体中文界面文案。新界面上的每一句话都从这里取（经 `@/i18n` 的 copy），不在组件里写死。
 // 按界面分组；带参数的句子写成函数，参数的位置由各语言自己决定。
 // 术语以 GLOSSARY.md 为准（对话、通话、通话层、麦克风静音、只看文字、印象色……）。
@@ -20,6 +22,7 @@ const reasoningEffortProblems = {
 };
 
 export const zh = {
+  privateLanding: PRIVATE_WORK,
   app: {
     name: "Eidolon-SC",
     description: "和 283 事务所的偶像说说话",
@@ -386,6 +389,11 @@ export const zh = {
   login: {
     lede: "和《偶像大师 闪耀色彩》283 事务所的偶像们打电话、说话。她们会用自己的声音回答你，记得原作里和制作人一起走过的事，也会记住你告诉她们的事。",
     signInRegion: "登录",
+    privatePassword: "私人访问口令",
+    privateHint: "输入部署者提供的访问口令。口令不会保存在此浏览器中。",
+    privateSubmit: "进入私人实验",
+    privateFailed: "登录失败，请稍后重试",
+    privateSubmitting: "正在登录…",
     signInWith: (provider: string) => `用 ${provider} 登录`,
     noProviders: "部署者还没有配置登录方式。",
     agreement: "登录即表示你已阅读{privacy}和{terms}。第一次登录时会请你确认一次。",

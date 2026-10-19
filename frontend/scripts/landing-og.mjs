@@ -1,5 +1,5 @@
 // 落地页的分享卡片（Open Graph / Twitter 卡片的图）：人工运行，成图提交进仓库
-// （src/app/(landing)/opengraph-image.jpg，Next 按文件约定给 `/` 和 `/about` 加上 og:image；
+// （public/sc-opengraph.jpg，旧作品模式由 layout 显式引用；
 // X 没有 twitter:image 时用 og:image）。
 //
 //   npm run build && BACKEND_URL=http://localhost:8000 npm run start   # 构建版，后端要能给出角色列表
@@ -26,7 +26,6 @@ import { ACT1_SCREENS } from "../src/app/(landing)/model/timeline.ts";
 
 const origin = (process.argv[2] ?? "http://localhost:3000").replace(/\/$/, "");
 const frontend = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const outDir = path.join(frontend, "src", "app", "(landing)");
 const SIZE = { width: 1200, height: 630 };
 
 /** 颗粒：一小块分形噪声平铺。 */
@@ -79,7 +78,7 @@ try {
   // 等弹簧和淡入走完、画面停稳。
   await page.waitForTimeout(3000);
 
-  const og = path.join(outDir, "opengraph-image.jpg");
+  const og = path.join(frontend, "public", "sc-opengraph.jpg");
   await page.screenshot({ path: og, type: "jpeg", quality: 88 });
   console.log(`写好了 ${path.relative(frontend, og)}`);
 } finally {

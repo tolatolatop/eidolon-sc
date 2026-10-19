@@ -1,0 +1,74 @@
+name: sekai-companion
+
+services:
+  backend:
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.0}
+    env_file: ${SEKAI_ENV_FILE:?set SEKAI_ENV_FILE to the private runtime configuration}
+    environment:
+      HOST: 0.0.0.0
+      PORT: 8000
+      EIDOLON_DATABASE_PATH: /data/eidolon.db
+      EIDOLON_CHARACTERS_PATH: /characters/characters.toml
+      EIDOLON_DEV_LOGIN: "0"
+      EIDOLON_AFFINITY_AND_GIFTS: "0"
+    volumes:
+      - sekai-data:/data
+      - ${SEKAI_CHARACTERS_DIR:?set SEKAI_CHARACTERS_DIR to the isolated character package}:/characters:ro
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 4
+      start_period: 60s
+    init: true
+    restart: unless-stopped
+
+  backup:
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.0}
+    env_file: ${SEKAI_BACKUP_ENV_FILE:?set SEKAI_BACKUP_ENV_FILE to the backup key configuration}
+    command: [python, /ops/private_backup.py, loop]
+    volumes:
+      - sekai-data:/data:ro
+      - ${SEKAI_BACKUP_DIR:?set SEKAI_BACKUP_DIR to the encrypted snapshot directory}:/backups
+      - ${SEKAI_BACKUP_SCRIPT:?set SEKAI_BACKUP_SCRIPT to private_backup.py}:/ops/private_backup.py:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import pathlib,time; p=pathlib.Path('/backups/.last-success'); raise SystemExit(0 if p.exists() and time.time()-p.stat().st_mtime<90000 else 1)"]
+      interval: 60s
+      timeout: 5s
+      retries: 2
+    init: true
+    restart: unless-stopped
+
+  frontend:
+    image: ${SEKAI_FRONTEND_IMAGE:-sekai-companion-frontend:0.1.0}
+    environment:
+      BACKEND_URL: http://backend:8000
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    ports:
+      - ${SEKAI_BIND_IP:-127.0.0.1}:${SEKAI_PORT:-18739}:3000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 8s
+      retries: 4
+      start_period: 30s
+    init: true
+    restart: unless-stopped
+
+volumes:
+  sekai-data:
+    name: sekai-companion-data
+
+# A dedicated range avoids exhausting Docker Desktop's automatic /16 address pools.
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${SEKAI_SUBNET:-10.211.39.0/24}

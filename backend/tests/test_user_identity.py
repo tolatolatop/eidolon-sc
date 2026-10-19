@@ -112,6 +112,8 @@ async def test_each_text_turn_uses_its_characters_identity_and_user_profile(
         assert "283" not in prompt
         assert "仍然是你的制作人" not in prompt
         assert "和你对话的是你的制作人" not in prompt
+        assert f"{ROLE}要你发照片时" in prompt
+        assert "制作人要你发照片时" not in prompt
         if gender is None:
             assert "男性" not in prompt and "女性" not in prompt
         else:

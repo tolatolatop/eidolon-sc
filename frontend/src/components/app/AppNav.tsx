@@ -8,6 +8,7 @@ import { opensNewTab, useDirectory } from "@/components/conversations/Conversati
 import { Button } from "@/components/ui/button";
 import { copy } from "@/i18n";
 import { currentNavItem, FIRST_LEVEL, isTyping, NAV_ITEMS, navDestination, type NavItem } from "@/lib/navShell";
+import { isProjectSekai } from "@/lib/work";
 import { REPOSITORY_URL } from "@/lib/repository";
 import { cn } from "@/lib/utils";
 import { ConversationsIcon, GiftIcon, GitHubIcon, SettingsIcon } from "@/theme/icons";
@@ -73,7 +74,7 @@ function NavLinks({ className }: { className: string }) {
   const pathname = usePathname();
   const { guard, held } = useDirectory();
   const current = currentNavItem(pathname);
-  return NAV_ITEMS.map((item) => {
+  return NAV_ITEMS.filter((item) => !isProjectSekai || item !== "gifts").map((item) => {
     const Icon = ICONS[item];
     const isCurrent = item === current;
     const onClick = (event: MouseEvent<HTMLAnchorElement>) => {

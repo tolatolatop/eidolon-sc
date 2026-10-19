@@ -72,7 +72,7 @@ export default function LoginPage() {
 
         <SignInChoices options={options} className="max-w-90" />
 
-        {options?.dev_login && (
+        {options?.dev_login && !options.private_login && (
           <form onSubmit={submit} className="flex max-w-90 flex-col gap-3">
             <div className="flex flex-col gap-1">
               <SectionHeading>{t.devTitle}</SectionHeading>

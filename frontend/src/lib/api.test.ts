@@ -362,3 +362,31 @@ describe("signing out and deleting the account", () => {
     expect(localOwnKeys("u1")).toEqual({ tts: { api_key: "fish-my-own-key-aaaa" } });
   });
 });
+
+describe("private login", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("posts the password without changing its contents", async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal("fetch", fetcher);
+    const { privateLogin } = await import("./api");
+    await privateLogin(" pass phrase ");
+    expect(fetcher).toHaveBeenCalledWith("/api/auth/private-login", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ password: " pass phrase " }),
+    }));
+  });
+
+  it("keeps rejected-password and rate-limit responses on the login form", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { pathname: "/login", assign } });
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    const { privateLogin } = await import("./api");
+    for (const status of [401, 429]) {
+      fetcher.mockResolvedValueOnce(new Response(JSON.stringify({ detail: "访问口令不正确" }), { status }));
+      await expect(privateLogin("wrong")).rejects.toMatchObject({ status });
+    }
+    expect(assign).not.toHaveBeenCalled();
+  });
+});

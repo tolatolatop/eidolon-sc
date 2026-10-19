@@ -31,7 +31,7 @@ export default function SignInPanel({ open, onOpenChange }: { open: boolean; onO
           <DialogTitle>{t.panelTitle}</DialogTitle>
         </DialogHeader>
         <SignInChoices options={options} />
-        {options?.dev_login && (
+        {options?.dev_login && !options.private_login && (
           <AppLink href="/login" isStandalone className="justify-self-start">
             {t.devSignIn}
           </AppLink>

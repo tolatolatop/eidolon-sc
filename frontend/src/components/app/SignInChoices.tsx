@@ -1,10 +1,14 @@
 "use client";
 
+import { useId, useState, type FormEvent } from "react";
+
+import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { AppLink } from "@/components/app/AppLink";
 import { Button } from "@/components/ui/button";
 import { copy } from "@/i18n";
 import { interpolate } from "@/i18n/interpolate";
-import type { SignInOptions } from "@/lib/api";
+import { privateLogin, type SignInOptions } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { PROVIDER_LABELS, signInUrl } from "@/lib/signIn";
 
@@ -30,7 +34,8 @@ export function SignInChoices({ options, className }: { options: SignInOptions |
           {t.signInWith(PROVIDER_LABELS[provider])}
         </Button>
       ))}
-      {options && options.providers.length === 0 && !options.dev_login && (
+      {options?.private_login && <PrivateSignInForm />}
+      {options && options.providers.length === 0 && !options.dev_login && !options.private_login && (
         <p className="text-body text-muted-foreground">{t.noProviders}</p>
       )}
       <p className="text-sm text-muted-foreground">
@@ -48,5 +53,41 @@ export function SignInChoices({ options, className }: { options: SignInOptions |
         })}
       </p>
     </section>
+  );
+}
+
+/** Shared by the landing dialog and the dedicated login page; secrets stay in component state. */
+function PrivateSignInForm() {
+  const id = useId();
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting || !password) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await privateLogin(password);
+      setPassword("");
+      window.location.assign("/conversations");
+    } catch (cause) {
+      setPassword("");
+      setError(cause instanceof Error ? cause.message : t.privateFailed);
+      setSubmitting(false);
+    }
+  }
+  return (
+    <form onSubmit={submit} className="flex flex-col gap-3">
+      <Field data-invalid={!!error || undefined}>
+        <FieldLabel htmlFor={id}>{t.privatePassword}</FieldLabel>
+        <Input id={id} type="password" autoComplete="off" value={password}
+          onChange={(event) => setPassword(event.target.value)} disabled={submitting}
+          aria-invalid={!!error || undefined} aria-describedby={`${id}-hint${error ? ` ${id}-error` : ""}`} required />
+        <FieldDescription id={`${id}-hint`}>{t.privateHint}</FieldDescription>
+        {error && <FieldError id={`${id}-error`} role="alert">{error}</FieldError>}
+      </Field>
+      <Button type="submit" disabled={submitting || !password}>{submitting ? t.privateSubmitting : t.privateSubmit}</Button>
+    </form>
   );
 }

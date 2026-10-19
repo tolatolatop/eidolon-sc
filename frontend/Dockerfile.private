@@ -1,0 +1,11 @@
+# Build first on the host: NEXT_PUBLIC_EIDOLON_WORK=project-sekai npm run build.
+# This packages the already checked standalone build without downloading dependencies again.
+FROM node:22-alpine
+WORKDIR /app
+ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000
+COPY .next/standalone ./
+COPY .next/static ./.next/static
+COPY public ./public
+RUN rm -rf public/gifts public/reset-card public/sc-opengraph.jpg
+EXPOSE 3000
+CMD ["node", "server.js"]

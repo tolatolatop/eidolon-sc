@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 
 import { getCharacters, getLandingAssets, getSignInOptions, isSignedIn } from "@/lib/backend";
 
+import { isProjectSekai } from "@/lib/work";
+
+import { PrivateLanding } from "./PrivateLanding";
 import { Landing } from "./Landing";
 
 /**
@@ -11,6 +14,7 @@ import { Landing } from "./Landing";
  */
 export default async function Home() {
   if (await isSignedIn((await cookies()).toString())) redirect("/conversations");
+  if (isProjectSekai) return <PrivateLanding isSignedIn={false} />;
   const [characters, signInOptions, assets] = await Promise.all([getCharacters(), getSignInOptions(), getLandingAssets()]);
   return <Landing isSignedIn={false} characters={characters} signInOptions={signInOptions} assets={assets} />;
 }

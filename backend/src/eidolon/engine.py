@@ -588,7 +588,10 @@ class ConversationEngine:
                 user_role=character.user_role,
             ),
             retrieved, text, voiced_by,
-            CANNOT_SEND if eligibility is None else photo_asked and photo_asked.prompt,
+            (
+                CANNOT_SEND.replace("制作人", character.user_role)
+                if character.user_role is not None else CANNOT_SEND
+            ) if eligibility is None else photo_asked and photo_asked.prompt,
         )
 
         # Offered on every turn, so that what goes before the history (the tools, with

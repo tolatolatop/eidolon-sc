@@ -1703,3 +1703,12 @@ html[data-lp-layout="motion"] .lp-act7-copy:has(:focus-visible) {
   outline: 2px solid var(--lp-ink);
   outline-offset: 3px;
 }
+
+/* The private text experiment uses system fonts and the shared neutral theme. */
+html.private-work {
+  --font-zh: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  background: var(--background);
+}
+html.private-work body {
+  background: var(--background);
+}

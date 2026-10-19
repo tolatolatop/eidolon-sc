@@ -1,11 +1,11 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "issue": "TOL-278",
   "date": "2026-10-19",
   "repository": "https://github.com/tolatolatop/eidolon-sc",
   "base_commit": "4f55fb03918dd0d59290181a8077c513f3bad488",
   "branch": "tol-278-project-sekai-prototype",
-  "delivery": "research_and_single_character_text_prototype",
+  "delivery": "private_text_first_release",
   "character": {
     "id": "miku-school",
     "name": "初音ミク",
@@ -13,7 +13,7 @@
     "sekai": "school",
     "user_role": "同行者",
     "edition_reference": "jp_official_public_intro",
-    "target_edition_confirmed": false,
+    "target_edition_confirmed": true,
     "official_story_imported": false,
     "scenario_type": "fan_original_prompt_outline",
     "deterministic_story_state_machine": false,
@@ -23,26 +23,60 @@
     "research": "docs/research/project-sekai-migration.md",
     "setup_and_acceptance": "examples/project-sekai/README.md",
     "configuration": "examples/project-sekai/characters.toml",
-    "sources": "examples/project-sekai/facts/miku-school.sources.md"
+    "sources": "examples/project-sekai/facts/miku-school.sources.md",
+    "deployment": "deploy/sekai/README.md"
   },
   "validation": {
-    "affected_tests": {"result": "passed", "count": 181},
-    "identity_profile_character_tests": {"result": "passed", "count": 135},
+    "affected_backend_tests": {
+      "result": "passed",
+      "count": 306
+    },
+    "affected_frontend_tests": {
+      "result": "passed",
+      "count": 548,
+      "files": 34
+    },
+    "after_prompt_refinement_tests": {
+      "result": "passed",
+      "count": 4
+    },
+    "after_copy_refinement_tests": {
+      "result": "passed",
+      "count": 7
+    },
     "test_counts_overlap": true,
     "ruff": "passed",
     "pyright": "passed",
+    "typecheck": "passed",
     "py_compile": "passed",
     "scratch_check": "passed",
-    "third_party_deprecation_warnings": 2,
+    "frontend_discipline": "passed",
+    "production_frontend_build": "passed",
+    "backend_image_build": "passed",
     "independent_reviews": 2,
-    "review_findings": [{
-      "severity": "MAJOR",
-      "finding": "development_login_default_all_interfaces_binding",
-      "resolution": "example_and_commands_bind_backend_and_frontend_to_loopback"
-    }],
-    "real_llm": "not_run",
-    "browser_visual": "not_run",
-    "voice_call": "not_run",
+    "review_fixes": [
+      "reject_noncanonical_origin",
+      "remove_call_and_gift_entries_in_text_mode"
+    ],
+    "browser": {
+      "desktop": "passed",
+      "mobile": "passed",
+      "wrong_password": "rejected",
+      "consent": "passed",
+      "private_settings": "passed",
+      "page_errors": 0
+    },
+    "real_llm": {
+      "result": "passed",
+      "release_model": "anthropic/claude-sonnet-4.6",
+      "release_turns": 3,
+      "japanese_and_chinese_alignment": "passed_for_acceptance_cases",
+      "school_world_identity": "passed",
+      "fan_original_disclosure": "passed"
+    },
+    "restart_persistence": "session_and_conversation_retained",
+    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database",
+    "acceptance_data_cleanup": "synthetic_account_deleted_and_old_session_rejected",
     "ci": "not_collected"
   },
   "isolation": {
@@ -52,19 +86,60 @@
     "example_database": "examples/project-sekai/.local/eidolon.db",
     "legacy_sync_scripts_supported": false,
     "media_assets_included": false,
-    "public_service_deployed": false
+    "public_service_deployed": false,
+    "private_service_deployed": true
   },
   "limitations": [
-    "frontend_brand_terms_and_static_art_are_still_from_shiny_colors",
-    "some_tool_and_affinity_prompts_still_say_producer",
-    "cross_sekai_memory_isolation_is_not_implemented",
-    "real_model_character_fidelity_and_story_progress_need_manual_acceptance",
-    "publication_and_media_or_voice_rights_require_human_review"
+    "single_character_and_prompt_driven_fan_original_scenes_only",
+    "official_story_import_and_multi_sekai_memory_are_not_implemented",
+    "voice_media_gifts_and_affinity_are_not_enabled",
+    "ai_character_fidelity_is_not_guaranteed_by_the_acceptance_cases",
+    "lan_http_deployment_has_no_public_domain_or_off_host_disaster_backup",
+    "some_internal_background_prompt_terms_are_still_inherited_from_the_original_application"
   ],
   "follow_up_issues": [
-    {"key": "TOL-280", "id": "01a15411-26aa-7ed8-86ed-aebdadcdc63f", "status": "backlog", "purpose": "human_scope_model_acceptance_and_rights"},
-    {"key": "TOL-281", "id": "01a15411-46d4-767d-beac-ed7d54c9b346", "status": "backlog", "purpose": "story_adapter_and_memory_scope"},
-    {"key": "TOL-282", "id": "01a15411-4704-7a95-8da2-3375b486605c", "status": "backlog", "purpose": "frontend_assets_and_release"}
+    {
+      "key": "TOL-280",
+      "id": "01a15411-26aa-7ed8-86ed-aebdadcdc63f",
+      "status": "in_review",
+      "purpose": "human_scope_model_acceptance_and_rights"
+    },
+    {
+      "key": "TOL-281",
+      "id": "01a15411-46d4-767d-beac-ed7d54c9b346",
+      "status": "backlog",
+      "purpose": "story_adapter_and_memory_scope"
+    },
+    {
+      "key": "TOL-282",
+      "id": "01a15411-4704-7a95-8da2-3375b486605c",
+      "status": "in_review",
+      "purpose": "frontend_assets_and_release"
+    }
   ],
-  "rollback": "stop_local_services_and_use_original_configuration_no_database_migration"
+  "rollback": "stop_compose_services_without_removing_database_volume_or_redeploy_retained_image_ids; snapshot_restore_never_overwrites_existing_files",
+  "version": "0.1.0",
+  "release_base_commit": "97d4030b5a6a0ca704aad62b0b48ca6dfb4cdb2f",
+  "deployment": {
+    "url": "http://192.168.1.112:18739",
+    "exposure": "trusted_lan_only",
+    "public_domain_configured": false,
+    "supervisor": "docker_compose_restart_unless_stopped",
+    "compose_project": "sekai-companion",
+    "containers": [
+      "sekai-companion-frontend-1",
+      "sekai-companion-backend-1",
+      "sekai-companion-backup-1"
+    ],
+    "database_volume": "sekai-companion-data",
+    "authentication": "single_owner_password",
+    "dev_login": false,
+    "password_delivery": "host_runtime_file_only_not_in_issue_or_git",
+    "backup": {
+      "encrypted": true,
+      "interval_hours": 24,
+      "retention_days": 14,
+      "off_host": false
+    }
+  }
 }
