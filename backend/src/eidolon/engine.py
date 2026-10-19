@@ -579,10 +579,13 @@ class ConversationEngine:
             if eligibility is not None else None
         )
         prompt = self._prompt(
-            character, world_prompt, producer_prompt(profile),
+            character, world_prompt, producer_prompt(
+                profile, user_role=character.user_role, user_identity=character.user_identity
+            ),
             chat_history(messages, turns), narrations(record, self._gift_catalog),
             now_prompt(
-                profile, now, timezone, in_call=in_call is not None, affinity_lines=affinity_lines
+                profile, now, timezone, in_call=in_call is not None, affinity_lines=affinity_lines,
+                user_role=character.user_role,
             ),
             retrieved, text, voiced_by,
             CANNOT_SEND if eligibility is None else photo_asked and photo_asked.prompt,

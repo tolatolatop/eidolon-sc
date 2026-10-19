@@ -1,0 +1,18 @@
+# 沿用已有通用礼物标识，保证启动校验通过。本原型不启用礼物玩法。
+[[gifts]]
+id = "cake"
+name = "蛋糕"
+category = "food"
+rarity = "common"
+
+[[gifts]]
+id = "book"
+name = "书"
+category = "trinket"
+rarity = "uncommon"
+
+[[gifts]]
+id = "plush"
+name = "毛绒玩偶"
+category = "trinket"
+rarity = "rare"

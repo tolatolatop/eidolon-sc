@@ -9,6 +9,10 @@ when it reports none), and the character does not know the producer's birthday
 own time zone, the character is asked to wish them a happy birthday once. The
 profile only shapes how the character treats the user now; the stories she
 recalls stay as they happened.
+
+A character may configure a different current user role and identity. Those replace
+the producer context, and an unset gender then makes no gender assumption. The user's
+form of address, gender, time zone and birthday still apply.
 """
 
 import calendar
@@ -91,25 +95,37 @@ def local_date(now: datetime, timezone: str) -> date:
     return now.astimezone(ZoneInfo(timezone)).date()
 
 
-def producer_prompt(profile: ProducerProfile) -> str:
+def producer_prompt(
+    profile: ProducerProfile,
+    *,
+    user_role: str | None = None,
+    user_identity: str | None = None,
+) -> str:
     """The prompt section about the user: who they are, the same from turn to turn."""
-    lines = ["# 制作人", "和你对话的是你的制作人，也就是 283 事务所的制作人。"]
+    custom_identity = user_role is not None and user_identity is not None
+    role = user_role if custom_identity else "制作人"
+    lines = (
+        [f"# {role}", f"和你对话的是{user_identity}。"]
+        if custom_identity
+        else ["# 制作人", "和你对话的是你的制作人，也就是 283 事务所的制作人。"]
+    )
     if profile.form_of_address:
+        identity_reminder = "" if custom_identity else "对方仍然是你的制作人；"
         lines.append(
-            f"制作人希望你称呼对方为「{profile.form_of_address}」。这只是叫法，"
-            "对方仍然是你的制作人；请按你自己的性格和习惯，在合适的时候这样称呼。"
+            f"{role}希望你称呼对方为「{profile.form_of_address}」。这只是叫法，"
+            f"{identity_reminder}请按你自己的性格和习惯，在合适的时候这样称呼。"
         )
     if profile.gender:
         lines.append(
-            f"制作人是{_GENDER_NAMES[profile.gender]}。这只影响你现在怎么对待对方；"
+            f"{role}是{_GENDER_NAMES[profile.gender]}。这只影响你现在怎么对待对方；"
             "回忆原作剧情时，剧情中发生过的事保持原样，不要改写。"
         )
-    else:
+    elif not custom_identity:
         lines.append("制作人是男性，和原作一致。")
     if profile.birthday:
         lines.append(
-            f"制作人的生日是{profile.birthday.month}月{profile.birthday.day}日，"
-            "这是制作人自己在档案里填的；记忆里如果有不一样的说法，以这里为准。"
+            f"{role}的生日是{profile.birthday.month}月{profile.birthday.day}日，"
+            f"这是{role}自己在档案里填的；记忆里如果有不一样的说法，以这里为准。"
             "被问起时可以回答，平时不要主动提起。"
         )
     return "\n".join(lines)
@@ -125,21 +141,24 @@ def now_prompt(
     timezone: str,
     in_call: bool,
     affinity_lines: Sequence[str] = (),
+    *,
+    user_role: str | None = None,
 ) -> str:
     """The prompt section about now: the time where the user is, whether they are typing or
     `in_call` with the character, and whether it is their birthday; then `affinity_lines`,
     how the character feels toward them now (`affinity.affinity_prompt`)."""
     local = now.astimezone(ZoneInfo(timezone))
+    role = user_role if user_role is not None else "制作人"
     lines = [
         "# 此刻",
         f"现在是 {local.year}年{local.month}月{local.day}日"
-        f"（星期{_WEEKDAYS[local.weekday()]}）{local:%H:%M}（制作人所在时区 {timezone}）。",
-        _IN_A_CALL if in_call else _TYPING,
+        f"（星期{_WEEKDAYS[local.weekday()]}）{local:%H:%M}（{role}所在时区 {timezone}）。",
+        (_IN_A_CALL if in_call else _TYPING).replace("制作人", role),
     ]
     if profile.birthday and is_birthday(profile.birthday, local.date()):
         lines.append(
-            "今天是制作人的生日。请在合适的时候用你自己的方式祝福一次："
-            "先回应制作人说的话，不要每句都提。"
+            f"今天是{role}的生日。请在合适的时候用你自己的方式祝福一次："
+            f"先回应{role}说的话，不要每句都提。"
         )
     lines += affinity_lines
     return "\n".join(lines)

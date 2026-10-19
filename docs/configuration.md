@@ -59,6 +59,8 @@
 
 ## 角色
 
+迁移实验可以在每个 `[[characters]]` 中成对设置 `user_role` 与 `user_identity`，两项均须为非空单行字符串。前者是当前交流中用户的身份称谓，后者是完整身份说明。它们替换身份、称呼和日期/生日提示中的默认制作人身份；设置后不再默认用户为男性，用户自行填写的性别仍生效。不配置时保持原行为。这不是全站术语开关，工具提示和前端仍有原作称谓。示例见 [`examples/project-sekai/`](../examples/project-sekai/README.md)。
+
 角色写在 [`characters/characters.toml`](../characters/characters.toml) 里，每位一段 `[[characters]]`。现在原作的八个组合、28 位偶像都已经配好，人设、角色资料和头像也都随仓库提交（ADR-0003）。
 
 ```toml

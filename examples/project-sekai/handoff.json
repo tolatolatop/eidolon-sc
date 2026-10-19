@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "issue": "TOL-278",
+  "date": "2026-10-19",
+  "repository": "https://github.com/tolatolatop/eidolon-sc",
+  "base_commit": "4f55fb03918dd0d59290181a8077c513f3bad488",
+  "branch": "tol-278-project-sekai-prototype",
+  "delivery": "research_and_single_character_text_prototype",
+  "character": {
+    "id": "miku-school",
+    "name": "初音ミク",
+    "unit_context": "Leo/need",
+    "sekai": "school",
+    "user_role": "同行者",
+    "edition_reference": "jp_official_public_intro",
+    "target_edition_confirmed": false,
+    "official_story_imported": false,
+    "scenario_type": "fan_original_prompt_outline",
+    "deterministic_story_state_machine": false,
+    "scenario_count": 3
+  },
+  "artifacts": {
+    "research": "docs/research/project-sekai-migration.md",
+    "setup_and_acceptance": "examples/project-sekai/README.md",
+    "configuration": "examples/project-sekai/characters.toml",
+    "sources": "examples/project-sekai/facts/miku-school.sources.md"
+  },
+  "validation": {
+    "affected_tests": {"result": "passed", "count": 181},
+    "identity_profile_character_tests": {"result": "passed", "count": 135},
+    "test_counts_overlap": true,
+    "ruff": "passed",
+    "pyright": "passed",
+    "py_compile": "passed",
+    "scratch_check": "passed",
+    "third_party_deprecation_warnings": 2,
+    "independent_reviews": 2,
+    "review_findings": [{
+      "severity": "MAJOR",
+      "finding": "development_login_default_all_interfaces_binding",
+      "resolution": "example_and_commands_bind_backend_and_frontend_to_loopback"
+    }],
+    "real_llm": "not_run",
+    "browser_visual": "not_run",
+    "voice_call": "not_run",
+    "ci": "not_collected"
+  },
+  "isolation": {
+    "original_character_files_changed": false,
+    "existing_database_changed": false,
+    "game_installation_changed": false,
+    "example_database": "examples/project-sekai/.local/eidolon.db",
+    "legacy_sync_scripts_supported": false,
+    "media_assets_included": false,
+    "public_service_deployed": false
+  },
+  "limitations": [
+    "frontend_brand_terms_and_static_art_are_still_from_shiny_colors",
+    "some_tool_and_affinity_prompts_still_say_producer",
+    "cross_sekai_memory_isolation_is_not_implemented",
+    "real_model_character_fidelity_and_story_progress_need_manual_acceptance",
+    "publication_and_media_or_voice_rights_require_human_review"
+  ],
+  "follow_up_issues": [
+    {"key": "TOL-280", "id": "01a15411-26aa-7ed8-86ed-aebdadcdc63f", "status": "backlog", "purpose": "human_scope_model_acceptance_and_rights"},
+    {"key": "TOL-281", "id": "01a15411-46d4-767d-beac-ed7d54c9b346", "status": "backlog", "purpose": "story_adapter_and_memory_scope"},
+    {"key": "TOL-282", "id": "01a15411-4704-7a95-8da2-3375b486605c", "status": "backlog", "purpose": "frontend_assets_and_release"}
+  ],
+  "rollback": "stop_local_services_and_use_original_configuration_no_database_migration"
+}
