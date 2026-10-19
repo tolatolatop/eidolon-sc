@@ -39,6 +39,13 @@ describe("contentSecurityPolicy", () => {
     expect(policy.get("img-src")).toEqual(["'self'", "data:", "blob:"]);
   });
 
+  it("allows blob audio only when private read-aloud opts in", () => {
+    expect(directives(contentSecurityPolicy(undefined)).get("media-src")).toEqual(["'self'"]);
+    const policy = directives(contentSecurityPolicy("https://stand.example.com/bucket", true));
+    expect(policy.get("media-src")).toEqual(["'self'", "blob:", "https://stand.example.com"]);
+    expect(policy.get("connect-src")).toEqual(["'self'", "https://stand.example.com"]);
+  });
+
   it.each(["not a url", "javascript:alert(1)"])(
     "leaves out a stand address that is not one (%j)",
     (url) => {

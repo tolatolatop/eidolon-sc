@@ -8,13 +8,14 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { contentSecurityPolicy } from "@/lib/contentSecurityPolicy";
 import { settingsRedirect } from "@/lib/settingsCategory";
+import { isProjectSekai } from "@/lib/work";
 
 export function proxy(request: NextRequest) {
   const to = settingsRedirect(request.nextUrl.pathname + request.nextUrl.search);
   const response = to ? NextResponse.redirect(new URL(to, request.url)) : NextResponse.next();
   response.headers.set(
     "Content-Security-Policy",
-    contentSecurityPolicy(process.env.EIDOLON_STAND_ASSETS_URL),
+    contentSecurityPolicy(process.env.EIDOLON_STAND_ASSETS_URL, isProjectSekai),
   );
   return response;
 }

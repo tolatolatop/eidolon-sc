@@ -22,10 +22,10 @@ export const projectSekai: typeof zh = {
   ...base,
   app: { ...base.app, name: PRIVATE_WORK.name, description: PRIVATE_WORK.description },
   share: { title: PRIVATE_WORK.name, description: PRIVATE_WORK.scope },
-  legal: { ...base.legal, disclaimer: "非官方 AI 私人文字实验，与版权方无关。" },
+  legal: { ...base.legal, disclaimer: "非官方 AI 私人陪伴实验，与版权方无关。" },
   conversationList: { ...base.conversationList, noneSelected: "选择初音未来开始对话", search: "搜索角色", noMatch: "没有找到这位角色" },
   login: { ...base.login, lede: PRIVATE_WORK.intro + PRIVATE_WORK.scope, castTitle: "本次可以对话的角色" },
-  consent: { ...base.consent, intro: "你和角色的文字对话、角色记下的关于你的事，会保存在这台服务器上，并交给语言模型服务处理。详情请看{privacy}和{terms}。" },
+  consent: { ...base.consent, intro: "文字对话与档案会保存在这台服务器上，并交给部署者配置的语言模型处理。配置朗读后，只有点击朗读时，所选回复才会发送给火山引擎合成语音；本部署不保存音频，不上传麦克风声音，也不开启双向语音通话。可选形象为官方免费样例的静态预览。详情请看{privacy}和{terms}。" },
   privacy: {
     ...base.privacy,
     sections: [
@@ -33,7 +33,9 @@ export const projectSekai: typeof zh = {
         title: "本次私人实验保存什么",
         items: [
           { term: "私人登录", text: "服务器只保存访问口令的加盐摘要、固定同行者身份和登录会话，不保存你输入的明文口令。口令不交给语言模型。" },
-          { term: "文字对话与档案", text: "你输入的文字、角色回复、对话标题及你填写的称呼、性别、时区和生日保存在本部署的独立数据库中。首版没有正式剧情库，也未启用语音、照片、好感度、礼物或跨世界长期记忆。" },
+          { term: "文字对话与档案", text: "你输入的文字、角色回复、对话标题及你填写的称呼、性别、时区和生日保存在本部署的独立数据库中。本版没有正式剧情库，也未启用照片、好感度、礼物或跨世界长期记忆。" },
+          { term: "点击朗读", text: "配置后，只有点击朗读时，所选角色回复才会发送给火山引擎合成语音。音频仅暂存在请求与浏览器内存中，本部署不保存音频；不上传麦克风声音，不开启双向语音通话。火山引擎按其服务条款处理收到的文字。" },
+          { term: "静态形象预览", text: "部署者可选展示 Live2D 官方经典 Miku 免费样例的静态预览图片。图片从本部署加载；点击官方来源链接会打开 Live2D 网站。教室的世界服装与动态模型待适配。" },
           { term: "运行记录", text: "保存请求时间、结果、模型用量和延迟等运行信息，不把访问口令或模型密钥写入记录。运行记录按系统保留期清理。" },
         ],
         notes: ["这是单人实验。持有访问口令的人进入同一同行者账户，请勿把口令分享给其他人。"],
@@ -69,7 +71,8 @@ export const projectSekai: typeof zh = {
     ...base.terms,
     items: [
       { term: "非官方私人实验", text: "本实验与《プロジェクトセカイ カラフルステージ！ feat. 初音ミク》及初音未来的版权方和官方没有关联，仅供私人体验，不用于商业推广。" },
-      { term: "原创文字练习", text: "首版仅有教室的世界初音未来与三幕原创文字练习。不提供正式剧情、官方插画、立绘、歌曲或角色音色；AI 生成内容不代表官方设定。" },
+      { term: "原创文字练习", text: "v0.1.1 仅有教室的世界初音未来与三幕原创文字练习，不提供正式剧情或歌曲；可选展示 Live2D 官方经典 Miku 免费样例的静态预览，教室的世界服装与动态模型待适配。AI 生成内容不代表官方设定。" },
+      { term: "可选点击朗读", text: "配置后，点击朗读会将所选回复发送给火山引擎合成语音。本部署不保存音频、不上传麦克风声音、不开启双向语音通话；合成音色不代表官方角色音色，声音复刻须另行配置。" },
       ...base.terms.items.filter((item) => item.term !== "非官方的粉丝作品" && item.term !== "玩法：好感度、冷却和礼物"),
     ],
     lastUpdated: "最后更新：2026 年 10 月 19 日",

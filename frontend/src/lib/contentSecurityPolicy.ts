@@ -7,7 +7,7 @@
 // the share card is turned into a PNG through them, in the page.
 
 /** The policy, with the stands' address if it is one. */
-export function contentSecurityPolicy(standAssetsUrl: string | undefined): string {
+export function contentSecurityPolicy(standAssetsUrl: string | undefined, allowBlobAudio = false): string {
   const stands = origin(standAssetsUrl);
   const standsSource = stands ? ` ${stands}` : "";
   return [
@@ -15,7 +15,7 @@ export function contentSecurityPolicy(standAssetsUrl: string | undefined): strin
     "script-src 'self' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob:${standsSource}`,
-    `media-src 'self'${standsSource}`,
+    `media-src 'self'${allowBlobAudio ? " blob:" : ""}${standsSource}`,
     "font-src 'self'",
     `connect-src 'self'${standsSource}`,
     "object-src 'none'",

@@ -35,4 +35,23 @@ describe("work selection", () => {
     const characters: import("./api").Character[] = [{ id: "miku-school", name: "初音未来", intro: "", color: "#33ccbb", avatar_url: null, scsp_avatar_url: "/old-media", background_url: null, stand: null, idol_id: null, name_zh: null, name_kana: null, name_romaji: null, unit: null, unit_reading: null, unit_order: null, greeting: null, call_opener: null, call_poster_url: null, voxels_url: null }];
     expect(withAppearance(characters, { scspAvatars: true })).toBe(characters);
   });
+
+  it("describes the optional sample preview and click-triggered voice processing consistently", async () => {
+    const { PRIVATE_WORK } = await import("./work");
+    const { projectSekai } = await import("@/i18n/projectSekai");
+    expect(PRIVATE_WORK.label).toContain("v0.1.1");
+    expect(PRIVATE_WORK.scope).toContain("静态预览");
+    expect(PRIVATE_WORK.appearance).toContain("动态模型待适配");
+    for (const text of [
+      projectSekai.consent.intro,
+      JSON.stringify(projectSekai.privacy.sections), JSON.stringify(projectSekai.terms.items),
+    ]) {
+      expect(text).toContain("火山引擎");
+      expect(text).toMatch(/所选(?:角色)?回复/);
+      expect(text).toContain("不保存音频");
+      expect(text).toContain("不上传麦克风声音");
+      expect(text).toContain("双向语音通话");
+      expect(text).not.toMatch(/只开放文字对话|未启用语音/);
+    }
+  });
 });

@@ -1,11 +1,11 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "issue": "TOL-278",
   "date": "2026-10-19",
   "repository": "https://github.com/tolatolatop/eidolon-sc",
   "base_commit": "4f55fb03918dd0d59290181a8077c513f3bad488",
   "branch": "tol-278-project-sekai-prototype",
-  "delivery": "private_text_first_release",
+  "delivery": "private_https_static_preview_and_volc_read_aloud_adapter",
   "character": {
     "id": "miku-school",
     "name": "初音ミク",
@@ -24,25 +24,24 @@
     "setup_and_acceptance": "examples/project-sekai/README.md",
     "configuration": "examples/project-sekai/characters.toml",
     "sources": "examples/project-sekai/facts/miku-school.sources.md",
-    "deployment": "deploy/sekai/README.md"
+    "deployment": "deploy/sekai/README.md",
+    "asset_sources": "examples/project-sekai/assets.json",
+    "read_aloud": "docs/sekai-read-aloud.md",
+    "tls_generator": "deploy/sekai/generate-tls.sh"
   },
   "validation": {
     "affected_backend_tests": {
       "result": "passed",
-      "count": 306
+      "count": 346
+    },
+    "latest_protocol_and_api_tests": {
+      "result": "passed",
+      "count": 25
     },
     "affected_frontend_tests": {
       "result": "passed",
-      "count": 548,
-      "files": 34
-    },
-    "after_prompt_refinement_tests": {
-      "result": "passed",
-      "count": 4
-    },
-    "after_copy_refinement_tests": {
-      "result": "passed",
-      "count": 7
+      "count": 563,
+      "files": 36
     },
     "test_counts_overlap": true,
     "ruff": "passed",
@@ -53,30 +52,42 @@
     "frontend_discipline": "passed",
     "production_frontend_build": "passed",
     "backend_image_build": "passed",
+    "frontend_image_build": "passed",
     "independent_reviews": 2,
     "review_fixes": [
-      "reject_noncanonical_origin",
-      "remove_call_and_gift_entries_in_text_mode"
+      "explicit_ja_and_zh_cn_tts_language",
+      "private_blob_audio_csp",
+      "no_resynthesis_after_autoplay_refusal",
+      "updated_data_flow_copy",
+      "short_viewport_scrollable_preview"
     ],
+    "real_next_asgi_disconnect_with_mock_tts": "passed",
     "browser": {
-      "desktop": "passed",
-      "mobile": "passed",
-      "wrong_password": "rejected",
-      "consent": "passed",
-      "private_settings": "passed",
+      "certificate_test": "strict curl --cacert separately; browser harness ignores HTTPS errors",
+      "secure_cookie": true,
+      "secure_context": true,
+      "fake_microphone": true,
+      "unconfigured_tts": "honest disabled state",
+      "preview": "complete 1100px static official sample",
+      "mobile": "no overflow",
+      "landscape": "dialog bounded and attribution reachable",
+      "mock_audio": "played and stopped (not real Volcengine synthesis)",
+      "autoplay_recovery": "simulated NotAllowedError recovered without another TTS request",
+      "mock_failure": "visible safe error",
+      "old_origin": "403",
+      "unauthenticated": "401",
       "page_errors": 0
     },
-    "real_llm": {
-      "result": "passed",
-      "release_model": "anthropic/claude-sonnet-4.6",
-      "release_turns": 3,
-      "japanese_and_chinese_alignment": "passed_for_acceptance_cases",
-      "school_world_identity": "passed",
-      "fan_original_disclosure": "passed"
+    "tls": {
+      "chain_and_ip_validation": "passed",
+      "wrong_ip": "rejected",
+      "untrusted_ca": "rejected",
+      "key_overwrite": "rejected",
+      "private_key_permissions": "0600"
     },
-    "restart_persistence": "session_and_conversation_retained",
-    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database",
-    "acceptance_data_cleanup": "synthetic_account_deleted_and_old_session_rejected",
+    "live_volcengine_tts": "not_tested_missing_credentials",
+    "actual_safari_device": "not_tested",
+    "private_chat_messages_preserved": 14,
     "ci": "not_collected"
   },
   "isolation": {
@@ -87,14 +98,18 @@
     "legacy_sync_scripts_supported": false,
     "media_assets_included": false,
     "public_service_deployed": false,
-    "private_service_deployed": true
+    "private_service_deployed": true,
+    "runtime_static_preview": true,
+    "bundled_third_party_images_or_models": false,
+    "additional_characters_added": false
   },
   "limitations": [
     "single_character_and_prompt_driven_fan_original_scenes_only",
     "official_story_import_and_multi_sekai_memory_are_not_implemented",
-    "voice_media_gifts_and_affinity_are_not_enabled",
-    "ai_character_fidelity_is_not_guaranteed_by_the_acceptance_cases",
-    "lan_http_deployment_has_no_public_domain_or_off_host_disaster_backup",
+    "volcengine_tts_api_key_and_speaker_missing_real_synthesis_and_miku_similarity_unverified",
+    "static_classic_miku_preview_only_no_dynamic_live2d_renderer_or_school_outfit",
+    "gifts_affinity_and_two_way_calls_not_enabled",
+    "lan_https_requires_client_trust_of_local_ca_no_public_domain_or_off_host_disaster_backup",
     "some_internal_background_prompt_terms_are_still_inherited_from_the_original_application"
   ],
   "follow_up_issues": [
@@ -115,13 +130,19 @@
       "id": "01a15411-4704-7a95-8da2-3375b486605c",
       "status": "in_review",
       "purpose": "frontend_assets_and_release"
+    },
+    {
+      "key": "TOL-283",
+      "id": "01a15462-6b8f-7162-9187-4837006f28f7",
+      "status": "todo",
+      "purpose": "provide_volcengine_credentials_speaker_and_listen_to_real_output"
     }
   ],
   "rollback": "stop_compose_services_without_removing_database_volume_or_redeploy_retained_image_ids; snapshot_restore_never_overwrites_existing_files",
-  "version": "0.1.0",
-  "release_base_commit": "97d4030b5a6a0ca704aad62b0b48ca6dfb4cdb2f",
+  "version": "0.1.1",
+  "release_base_commit": "baafb26ab52dbb3f6004d17cbd9c507d03afb112",
   "deployment": {
-    "url": "http://192.168.1.112:18739",
+    "url": "https://192.168.1.112:18740",
     "exposure": "trusted_lan_only",
     "public_domain_configured": false,
     "supervisor": "docker_compose_restart_unless_stopped",
@@ -129,7 +150,8 @@
     "containers": [
       "sekai-companion-frontend-1",
       "sekai-companion-backend-1",
-      "sekai-companion-backup-1"
+      "sekai-companion-backup-1",
+      "sekai-companion-gateway-1"
     ],
     "database_volume": "sekai-companion-data",
     "authentication": "single_owner_password",
@@ -140,6 +162,33 @@
       "interval_hours": 24,
       "retention_days": 14,
       "off_host": false
+    },
+    "http_redirect_url": "http://192.168.1.112:18739",
+    "tls": {
+      "issuer": "local_test_ca",
+      "certificate_not_after": "2027-10-19",
+      "client_trust_required": true,
+      "private_keys_delivered": false
+    },
+    "read_aloud": {
+      "provider": "volcengine",
+      "configured": false,
+      "real_voice_cloned": false,
+      "microphone_upload": false,
+      "two_way_call": false
     }
+  },
+  "previous_release_validation": {
+    "version": "0.1.0",
+    "real_llm": {
+      "result": "passed",
+      "release_model": "anthropic/claude-sonnet-4.6",
+      "release_turns": 3,
+      "japanese_and_chinese_alignment": "passed_for_acceptance_cases",
+      "school_world_identity": "passed",
+      "fan_original_disclosure": "passed"
+    },
+    "restart_persistence": "session_and_conversation_retained",
+    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database"
   }
 }

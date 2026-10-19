@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "purpose": "private local experiment",
+  "display": "static official sample preview; classic Miku appearance, not school SEKAI costume",
+  "source_page": "https://www.live2d.com/en/learn/sample/hatsune-miku/",
+  "preview_url": "https://www.live2d.com/wp-content/uploads/2026/06/sample-img-miku.jpg",
+  "preview_sha256": "c6e2526ae2716b2c777396ed380c3e90015be3dbf2707e5a6ea5408f8194ae51",
+  "runtime_relative_path": "images/miku-live2d-preview.jpg",
+  "distribution": "not bundled with repository or images",
+  "model": {
+    "format": "Cubism 3.3 / moc3",
+    "download_status": "403 from published model download endpoint on 2026-10-19",
+    "renderer_installed": false,
+    "open_source": false,
+    "free_sample": true
+  }
+}

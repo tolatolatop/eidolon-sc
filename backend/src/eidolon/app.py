@@ -54,6 +54,7 @@ from eidolon.admin_prices_api import add_admin_price_routes
 from eidolon.announcements_api import add_announcement_routes
 from eidolon.gifts_api import add_gift_routes
 from eidolon.photos_api import add_photo_routes
+from eidolon.read_aloud_api import add_read_aloud_routes
 from eidolon.sessions import UserId, session_middleware
 from eidolon.stats import add_stats_routes
 from eidolon.service_status import add_service_status_routes
@@ -339,6 +340,7 @@ def create_app(backend: Backend) -> FastAPI:
     add_announcement_routes(app, backend)
     add_gift_routes(app, backend)
     add_photo_routes(app, backend)
+    add_read_aloud_routes(app, backend)
     add_data_package_routes(app, backend)
     add_stats_routes(app, backend)
     add_service_status_routes(app, backend.service_status)

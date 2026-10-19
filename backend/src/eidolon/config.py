@@ -417,6 +417,10 @@ class Settings:
     """The single-owner access password's scrypt hash; never the password itself."""
     private_origin: str | None = None
     """The explicit browser origin of a private deployment, including its scheme and port."""
+    volcengine_tts_api_key: str | None = field(default=None, repr=False)
+    """Private read-aloud only; separate from Fish calls, billing and health checks."""
+    volcengine_tts_speaker: str | None = None
+    volcengine_tts_resource_id: str = "seed-tts-2.0"
     github: "OAuthSettings | None" = None
     """Signing in with GitHub; not offered unless configured."""
     google: "OAuthSettings | None" = None
@@ -525,6 +529,11 @@ class Settings:
             dev_login=os.environ.get("EIDOLON_DEV_LOGIN", "").strip() == "1",
             private_password_hash=os.environ.get("EIDOLON_PRIVATE_PASSWORD_HASH") or None,
             private_origin=os.environ.get("EIDOLON_PRIVATE_ORIGIN") or None,
+            volcengine_tts_api_key=os.environ.get("VOLCENGINE_TTS_API_KEY", "").strip() or None,
+            volcengine_tts_speaker=os.environ.get("VOLCENGINE_TTS_SPEAKER", "").strip() or None,
+            volcengine_tts_resource_id=(
+                os.environ.get("VOLCENGINE_TTS_RESOURCE_ID", "seed-tts-2.0").strip()
+            ),
             github=OAuthSettings.from_env("GITHUB"),
             google=OAuthSettings.from_env("GOOGLE"),
             secret_key=os.environ.get("EIDOLON_SECRET_KEY") or None,

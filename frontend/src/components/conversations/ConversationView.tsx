@@ -16,6 +16,7 @@ import { FailureNotice, SignInButton } from "@/components/app/FailureNotice";
 import { MarkedAvatar } from "@/components/app/MarkedAvatar";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ import { isLive, NOT_OPEN, type LiveConversation } from "@/lib/liveConversation"
 import { linesOf, type Line } from "@/lib/messageLines";
 import { pastDay } from "@/lib/pastConversations";
 import { photosUsedUpText } from "@/lib/photoFailure";
+import { savedReplyId } from "@/lib/readAloud";
 import { cn } from "@/lib/utils";
 import { isProjectSekai } from "@/lib/work";
 import { herVars } from "@/theme/herVars";
@@ -60,6 +62,8 @@ import {
   PhoneIcon,
   PhotosUsedUpIcon,
   SendIcon,
+  ReadAloudIcon,
+  StopReadAloudIcon,
 } from "@/theme/icons";
 import { Ja } from "@/theme/Ja";
 
@@ -75,6 +79,7 @@ import { useFocusBack } from "./useFocusBack";
 import { usePastConversation, type Viewing } from "./usePastConversation";
 import { useProducerTimezone } from "./useProducerTimezone";
 import { useStandOutfits } from "./useStandOutfits";
+import { useReadAloud, type ReadAloudControls } from "./useReadAloud";
 
 const t = copy.conversation;
 
@@ -121,6 +126,7 @@ export function ConversationView({
   const [pickingOutfit, setPickingOutfit] = useState(false);
   const [pickingPast, setPickingPast] = useState(false);
   const { viewing, view, backToCurrent } = usePastConversation(character.id);
+  const readAloud = useReadAloud(viewing?.id ?? (conversation.status === "open" ? conversation.id : null), userId);
   const subtree = useRef<HTMLDivElement>(null);
   // 她现在对制作人的好感度；读不到（好感度关着、没配判断模型或请求失败）就不显示标识，也不出变化胶囊。
   const { affinity, affinityCue, cooling, ended } = snapshot;
@@ -204,6 +210,21 @@ export function ConversationView({
         )}
       </div>
       {phoneKey}
+      {isProjectSekai && character.background_url && (
+        <Dialog>
+          <DialogTrigger render={<Button variant="ghost" size="sm" />}>形象预览</DialogTrigger>
+          <DialogContent container={subtree} variant="preview">
+            <DialogHeader>
+              <DialogTitle>形象预览</DialogTitle>
+              <DialogDescription>经典 Miku 免费样例预览；教室的世界服装待适配</DialogDescription>
+            </DialogHeader>
+            {/* Runtime-configured preview; preserve the complete official sample image. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={character.background_url} alt="Live2D 经典初音未来免费样例静态预览" className="h-auto w-full object-contain" />
+            <a href="https://www.live2d.com/en/learn/sample/hatsune-miku/" target="_blank" rel="noopener noreferrer">Live2D 官方样例来源</a>
+          </DialogContent>
+        </Dialog>
+      )}
       {affinity && (
         <AffinityBadge
           status={affinity}
@@ -357,6 +378,7 @@ export function ConversationView({
               character={character}
               affinityOn={affinity !== null}
               timeZone={timeZone}
+              readAloud={readAloud}
             />
           ) : viewing.status === "failed" ? (
             <Empty className="h-full">
@@ -390,9 +412,22 @@ export function ConversationView({
             character={character}
             affinityOn={affinity !== null}
             timeZone={timeZone}
+            readAloud={readAloud}
           />
         )}
       </div>
+      {readAloud && (
+        <p role="status" className="px-3 py-1 text-meta text-muted-foreground">
+          {readAloud.availability === "unconfigured" ? "朗读待配置：需要火山引擎密钥和已授权音色。" :
+            readAloud.availability === "failed" ? "暂时无法确认朗读配置，请刷新后重试。" :
+            readAloud.availability === "loading" ? "正在检查朗读配置…" :
+            readAloud.state.phase === "failed" ? readAloud.state.error :
+            readAloud.state.phase === "ready" ? readAloud.state.error :
+            readAloud.state.phase === "loading" ? "正在合成语音，可点击停止取消。" :
+            readAloud.state.phase === "playing" ? "正在朗读，可点击停止。" :
+            "点击朗读会将所选回复发送给火山引擎；本部署不保存音频、不上传麦克风声音、不开启双向语音通话。合成音色不代表官方角色音色。"}
+        </p>
+      )}
       {composer}
       <PastConversations
         isOpen={pickingPast}
@@ -537,12 +572,14 @@ function Messages({
   character,
   affinityOn,
   timeZone,
+  readAloud,
 }: {
   entries: Entry[];
   hearing: string;
   character: Character;
   affinityOn: boolean;
   timeZone: string;
+  readAloud: ReadAloudControls;
 }) {
   const lines = linesOf(entries, new Date(), affinityOn);
   return (
@@ -579,7 +616,7 @@ function Messages({
                 </MessageScrollerItem>
               ) : (
                 <MessageScrollerItem key={line.entry.key} messageId={line.entry.key} className={cn(line.first && "mt-2")}>
-                  <Bubbled line={line} entry={line.entry} character={character} />
+                  <Bubbled line={line} entry={line.entry} character={character} readAloud={readAloud} />
                 </MessageScrollerItem>
               ),
             )}
@@ -626,10 +663,12 @@ function Bubbled({
   line: { first, last },
   entry,
   character,
+  readAloud,
 }: {
   line: Extract<Line, { kind: "entry" }>;
   entry: Exclude<Entry, { kind: "event" }>;
   character: Character;
+  readAloud: ReadAloudControls;
 }) {
   const time = <time className="shrink-0 pb-0.5 text-meta text-muted-foreground tabular-nums">{clock(entry.at)}</time>;
   if (entry.kind === "user") {
@@ -646,6 +685,7 @@ function Bubbled({
       </Message>
     );
   }
+  const messageId = savedReplyId(entry.key, entry.pending);
   return (
     <Message align="start">
       {first ? (
@@ -676,9 +716,43 @@ function Bubbled({
             </BubbleContent>
           </Bubble>
           {last && !entry.pending && time}
+          {readAloud?.availability === "ready" && readAloud.conversationId &&
+            messageId !== null && entry.segments.some((segment) => segment.ja.trim()) && (
+              <ReadReplyButton messageId={messageId} controls={readAloud} />
+            )}
         </div>
       </MessageContent>
     </Message>
+  );
+}
+
+function ReadReplyButton({ messageId, controls }: { messageId: number; controls: NonNullable<ReadAloudControls> }) {
+  const active = controls.state.messageId === messageId && ["loading", "playing"].includes(controls.state.phase);
+  const ready = controls.state.messageId === messageId && controls.state.phase === "ready";
+  const Icon = active ? StopReadAloudIcon : ReadAloudIcon;
+  const toggle = () => {
+    if (controls.conversationId) void controls.player.toggle(controls.conversationId, messageId);
+  };
+  if (ready) {
+    return (
+      <div className="flex flex-col items-start gap-1">
+        <Button variant="ghost" size="sm" onClick={toggle}>播放朗读</Button>
+        <Button variant="ghost" size="icon-sm" aria-label="取消朗读" onClick={controls.player.stop}>
+          <StopReadAloudIcon aria-hidden />
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <Button
+      variant="ghost"
+      size="icon-sm"
+      aria-label={active ? "停止朗读" : "朗读这条回复"}
+      aria-pressed={active}
+      onClick={toggle}
+    >
+      {active && controls.state.phase === "loading" ? <Spinner aria-hidden /> : <Icon aria-hidden />}
+    </Button>
   );
 }
 
