@@ -84,6 +84,8 @@ def add_read_aloud_routes(app: FastAPI, backend: Backend) -> None:
     @app.get("/api/read-aloud")
     def availability(user_id: UserId) -> dict:
         private_only()
+        if not settings.read_aloud_enabled:
+            return {"available": False, "enabled": False}
         return {"available": volcengine_tts.configured(settings)}
 
     @app.post("/api/conversations/{conversation_id}/messages/{message_id}/read-aloud")
@@ -91,6 +93,8 @@ def add_read_aloud_routes(app: FastAPI, backend: Backend) -> None:
         conversation_id: str, message_id: int, user_id: UserId, request: Request,
     ) -> Response:
         private_only()
+        if not settings.read_aloud_enabled:
+            raise HTTPException(404, "本部署未开启朗读")
         # Consume the empty request before monitoring disconnects. A body is never
         # useful here, and competing reads of an unconsumed body can stall middleware.
         async for chunk in request.stream():

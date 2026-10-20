@@ -120,9 +120,9 @@ export class ReadAloud {
   }
 }
 
-export async function readAloudAvailable(signal: AbortSignal): Promise<boolean> {
-  const status = await json<{ available: boolean }>(await api("/api/read-aloud", { signal }));
-  return status.available;
+export async function readAloudAvailable(signal: AbortSignal): Promise<"ready" | "unconfigured" | "disabled"> {
+  const status = await json<{ available: boolean; enabled?: boolean }>(await api("/api/read-aloud", { signal }));
+  return status.enabled === false ? "disabled" : status.available ? "ready" : "unconfigured";
 }
 
 /** Pending replies use temporary keys; only persisted, complete replies have message IDs. */

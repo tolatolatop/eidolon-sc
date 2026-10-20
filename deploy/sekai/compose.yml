@@ -2,7 +2,7 @@ name: sekai-companion
 
 services:
   backend:
-    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.1}
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.2}
     env_file: ${SEKAI_ENV_FILE:?set SEKAI_ENV_FILE to the private runtime configuration}
     environment:
       HOST: 0.0.0.0
@@ -11,6 +11,11 @@ services:
       EIDOLON_CHARACTERS_PATH: /characters/characters.toml
       EIDOLON_DEV_LOGIN: "0"
       EIDOLON_AFFINITY_AND_GIFTS: "0"
+      EIDOLON_READ_ALOUD_ENABLED: "0"
+      EIDOLON_LOCAL_WHISPER_URL: http://whisper:8000
+    networks:
+      - default
+      - asr
     volumes:
       - sekai-data:/data
       - ${SEKAI_CHARACTERS_DIR:?set SEKAI_CHARACTERS_DIR to the isolated character package}:/characters:ro
@@ -24,7 +29,7 @@ services:
     restart: unless-stopped
 
   backup:
-    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.1}
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.2}
     env_file: ${SEKAI_BACKUP_ENV_FILE:?set SEKAI_BACKUP_ENV_FILE to the backup key configuration}
     command: [python, /ops/private_backup.py, loop]
     volumes:
@@ -43,7 +48,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ${SEKAI_FRONTEND_IMAGE:-sekai-companion-frontend:0.1.1}
+    image: ${SEKAI_FRONTEND_IMAGE:-sekai-companion-frontend:0.1.2}
     environment:
       BACKEND_URL: http://backend:8000
       HOSTNAME: 0.0.0.0
@@ -57,6 +62,38 @@ services:
       timeout: 8s
       retries: 4
       start_period: 30s
+    init: true
+    restart: unless-stopped
+
+  whisper:
+    image: ${SEKAI_WHISPER_IMAGE:-sekai-companion-whisper:0.1.2}
+    environment:
+      WHISPER_MODEL_PATH: /models/small
+      WHISPER_CPU_THREADS: "4"
+      OMP_NUM_THREADS: "4"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    volumes:
+      - ${SEKAI_WHISPER_MODEL_DIR:?set SEKAI_WHISPER_MODEL_DIR to the verified small model directory}:/models/small:ro
+    networks:
+      - asr
+    cpus: 4.0
+    mem_limit: 4g
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:size=67108864,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 4
+      start_period: 120s
     init: true
     restart: unless-stopped
 
@@ -96,3 +133,9 @@ networks:
     ipam:
       config:
         - subnet: ${SEKAI_SUBNET:-10.211.39.0/24}
+  # The recognizer has no outbound route and no host port. Only backend joins both networks.
+  asr:
+    internal: true
+    ipam:
+      config:
+        - subnet: ${SEKAI_ASR_SUBNET:-10.211.40.0/24}

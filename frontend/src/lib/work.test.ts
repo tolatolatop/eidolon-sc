@@ -36,20 +36,21 @@ describe("work selection", () => {
     expect(withAppearance(characters, { scspAvatars: true })).toBe(characters);
   });
 
-  it("describes the optional sample preview and click-triggered voice processing consistently", async () => {
+  it("describes local transcription and explicit external text processing consistently", async () => {
     const { PRIVATE_WORK } = await import("./work");
     const { projectSekai } = await import("@/i18n/projectSekai");
-    expect(PRIVATE_WORK.label).toContain("v0.1.1");
+    expect(PRIVATE_WORK.label).toContain("v0.1.2");
     expect(PRIVATE_WORK.scope).toContain("静态预览");
     expect(PRIVATE_WORK.appearance).toContain("动态模型待适配");
     for (const text of [
       projectSekai.consent.intro,
       JSON.stringify(projectSekai.privacy.sections), JSON.stringify(projectSekai.terms.items),
     ]) {
-      expect(text).toContain("火山引擎");
-      expect(text).toMatch(/所选(?:角色)?回复/);
+      expect(text).toContain("Whisper");
       expect(text).toContain("不保存音频");
-      expect(text).toContain("不上传麦克风声音");
+      expect(text).toContain("外部语言模型");
+      expect(text).toContain("停用火山朗读");
+      expect(text).toContain("30秒");
       expect(text).toContain("双向语音通话");
       expect(text).not.toMatch(/只开放文字对话|未启用语音/);
     }

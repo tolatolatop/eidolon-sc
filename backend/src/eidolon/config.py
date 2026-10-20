@@ -417,6 +417,9 @@ class Settings:
     """The single-owner access password's scrypt hash; never the password itself."""
     private_origin: str | None = None
     """The explicit browser origin of a private deployment, including its scheme and port."""
+    local_whisper_url: str | None = None
+    """Administrator-selected private Whisper sidecar; never supplied by users."""
+    read_aloud_enabled: bool = True
     volcengine_tts_api_key: str | None = field(default=None, repr=False)
     """Private read-aloud only; separate from Fish calls, billing and health checks."""
     volcengine_tts_speaker: str | None = None
@@ -444,6 +447,19 @@ class Settings:
     every character's call background without her stand."""
 
     def __post_init__(self) -> None:
+        if self.local_whisper_url is not None:
+            try:
+                parts = urlsplit(self.local_whisper_url)
+                valid_whisper_url = (
+                    parts.scheme in {"http", "https"} and bool(parts.hostname)
+                    and parts.username is None and parts.password is None
+                    and not parts.query and not parts.fragment
+                    and parts.path in {"", "/"} and parts.port != 0
+                )
+            except ValueError:
+                valid_whisper_url = False
+            if not valid_whisper_url:
+                raise RuntimeError("EIDOLON_LOCAL_WHISPER_URL 须为不含凭据、路径或查询的 HTTP(S) 服务地址")
         if self.private_password_hash is not None:
             if not valid_password_hash(self.private_password_hash):
                 raise RuntimeError("EIDOLON_PRIVATE_PASSWORD_HASH 格式无效，应为 scrypt-v1 盐与摘要")
@@ -529,6 +545,8 @@ class Settings:
             dev_login=os.environ.get("EIDOLON_DEV_LOGIN", "").strip() == "1",
             private_password_hash=os.environ.get("EIDOLON_PRIVATE_PASSWORD_HASH") or None,
             private_origin=os.environ.get("EIDOLON_PRIVATE_ORIGIN") or None,
+            local_whisper_url=os.environ.get("EIDOLON_LOCAL_WHISPER_URL", "").strip() or None,
+            read_aloud_enabled=os.environ.get("EIDOLON_READ_ALOUD_ENABLED", "1") != "0",
             volcengine_tts_api_key=os.environ.get("VOLCENGINE_TTS_API_KEY", "").strip() or None,
             volcengine_tts_speaker=os.environ.get("VOLCENGINE_TTS_SPEAKER", "").strip() or None,
             volcengine_tts_resource_id=(

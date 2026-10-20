@@ -49,6 +49,7 @@ import { photosUsedUpText } from "@/lib/photoFailure";
 import { savedReplyId } from "@/lib/readAloud";
 import { cn } from "@/lib/utils";
 import { isProjectSekai } from "@/lib/work";
+import { appendVoiceDraft } from "@/lib/voiceInput";
 import { herVars } from "@/theme/herVars";
 import {
   BackIcon,
@@ -80,6 +81,7 @@ import { usePastConversation, type Viewing } from "./usePastConversation";
 import { useProducerTimezone } from "./useProducerTimezone";
 import { useStandOutfits } from "./useStandOutfits";
 import { useReadAloud, type ReadAloudControls } from "./useReadAloud";
+import { VoiceInput } from "./VoiceInput";
 
 const t = copy.conversation;
 
@@ -331,6 +333,16 @@ export function ConversationView({
     >
       {/* 失败的原因（没登录时带去登录的入口）；通话层盖着时整栏 inert，Tab 摸不到 */}
       {failure && <FailureNotice failure={{ ...failure, message: failureText(failure) }} />}
+      {isProjectSekai && isOpen && <VoiceInput
+        key={`${userId}:${conversation.id}`}
+        onAppend={(text) => {
+          if (!live) return false;
+          const combined = appendVoiceDraft(live.snapshot().draft, text);
+          if (combined === null) return false;
+          live.setDraft(combined);
+          return true;
+        }}
+      />}
       <div className="flex items-end gap-2">
         <Textarea
           variant="composer"
@@ -416,11 +428,10 @@ export function ConversationView({
           />
         )}
       </div>
-      {readAloud && (
+      {readAloud && readAloud.availability !== "disabled" && readAloud.availability !== "loading" && (
         <p role="status" className="px-3 py-1 text-meta text-muted-foreground">
           {readAloud.availability === "unconfigured" ? "朗读待配置：需要火山引擎密钥和已授权音色。" :
             readAloud.availability === "failed" ? "暂时无法确认朗读配置，请刷新后重试。" :
-            readAloud.availability === "loading" ? "正在检查朗读配置…" :
             readAloud.state.phase === "failed" ? readAloud.state.error :
             readAloud.state.phase === "ready" ? readAloud.state.error :
             readAloud.state.phase === "loading" ? "正在合成语音，可点击停止取消。" :
