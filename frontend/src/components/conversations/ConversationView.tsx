@@ -16,7 +16,7 @@ import { FailureNotice, SignInButton } from "@/components/app/FailureNotice";
 import { MarkedAvatar } from "@/components/app/MarkedAvatar";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PrivateAvatarPreview } from "@/components/conversations/PrivateAvatarPreview";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -212,20 +212,8 @@ export function ConversationView({
         )}
       </div>
       {phoneKey}
-      {isProjectSekai && character.background_url && (
-        <Dialog>
-          <DialogTrigger render={<Button variant="ghost" size="sm" />}>形象预览</DialogTrigger>
-          <DialogContent container={subtree} variant="preview">
-            <DialogHeader>
-              <DialogTitle>形象预览</DialogTitle>
-              <DialogDescription>经典 Miku 免费样例预览；教室的世界服装待适配</DialogDescription>
-            </DialogHeader>
-            {/* Runtime-configured preview; preserve the complete official sample image. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={character.background_url} alt="Live2D 经典初音未来免费样例静态预览" className="h-auto w-full object-contain" />
-            <a href="https://www.live2d.com/en/learn/sample/hatsune-miku/" target="_blank" rel="noopener noreferrer">Live2D 官方样例来源</a>
-          </DialogContent>
-        </Dialog>
+      {isProjectSekai && character.id === "miku-school" && (
+        <PrivateAvatarPreview key={character.id} image={character.background_url} container={subtree} />
       )}
       {affinity && (
         <AffinityBadge
@@ -429,15 +417,22 @@ export function ConversationView({
         )}
       </div>
       {readAloud && readAloud.availability !== "disabled" && readAloud.availability !== "loading" && (
-        <p role="status" className="px-3 py-1 text-meta text-muted-foreground">
-          {readAloud.availability === "unconfigured" ? "朗读待配置：需要火山引擎密钥和已授权音色。" :
-            readAloud.availability === "failed" ? "暂时无法确认朗读配置，请刷新后重试。" :
-            readAloud.state.phase === "failed" ? readAloud.state.error :
-            readAloud.state.phase === "ready" ? readAloud.state.error :
-            readAloud.state.phase === "loading" ? "正在合成语音，可点击停止取消。" :
-            readAloud.state.phase === "playing" ? "正在朗读，可点击停止。" :
-            "点击朗读会将所选回复发送给火山引擎；本部署不保存音频、不上传麦克风声音、不开启双向语音通话。合成音色不代表官方角色音色。"}
-        </p>
+        <div className="flex items-center gap-2 px-3 py-1">
+          <p role="status" className="text-meta text-muted-foreground">
+            {readAloud.availability === "unconfigured" ? "朗读待配置：需要火山引擎密钥和已授权音色。" :
+              readAloud.availability === "unready" ? "本地朗读服务尚未就绪，请稍后重试。" :
+              readAloud.availability === "failed" ? "暂时无法确认朗读配置，请点击重试。" :
+              readAloud.state.phase === "failed" ? readAloud.state.error :
+              readAloud.state.phase === "ready" ? readAloud.state.error :
+              readAloud.state.phase === "loading" ? "正在合成语音，可点击停止取消。" :
+              readAloud.state.phase === "playing" ? "正在朗读，可点击停止。" :
+              readAloud.provider === "kokoro" ? "点击朗读仅将所选回复文字交给本部署 Kokoro（日语或中文）；本地合成音色，非官方角色声音。不保存音频，不开启双向语音通话。" :
+              "点击朗读会将所选回复发送给火山引擎；本部署不保存音频、不上传麦克风声音、不开启双向语音通话。合成音色不代表官方角色音色。"}
+          </p>
+          {(readAloud.availability === "unready" || readAloud.availability === "failed") && (
+            <Button variant="ghost" size="sm" onClick={readAloud.retryAvailability}>重试朗读连接</Button>
+          )}
+        </div>
       )}
       {composer}
       <PastConversations
@@ -728,7 +723,7 @@ function Bubbled({
           </Bubble>
           {last && !entry.pending && time}
           {readAloud?.availability === "ready" && readAloud.conversationId &&
-            messageId !== null && entry.segments.some((segment) => segment.ja.trim()) && (
+            messageId !== null && entry.segments.some((segment) => segment.ja.trim() || segment.zh.trim()) && (
               <ReadReplyButton messageId={messageId} controls={readAloud} />
             )}
         </div>

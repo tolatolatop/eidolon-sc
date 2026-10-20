@@ -1,15 +1,18 @@
 # 私人陪伴版本
 
-范围：日服公开简介、教室的世界初音未来、同行者身份和三幕原创音乐练习。一次部署只有一个私人同行者账户；访问口令持有人共享该账户。未导入正式剧情，没有启用礼物、好感度、跨世界记忆或旧同步任务。v0.1.2 使用本地 Whisper 进行录音转文字，保留 HTTPS 和可选静态形象预览，停用火山朗读。Whisper 不生成角色声音；校对后点击发送的文字仍由现有外部语言模型处理，整套聊天并非离线运行。
+范围：日服公开简介、教室的世界初音未来、同行者身份和三幕原创音乐练习。一次部署只有一个私人同行者账户；访问口令持有人共享该账户。未导入正式剧情，没有启用礼物、好感度、跨世界记忆或旧同步任务。v0.1.3 使用本地 Whisper 进行录音转文字、本地 Kokoro 进行点击朗读，并提供可选经典 Miku 动态模型预览。火山路径停用。合成音色不是官方角色声音；校对后点击发送的文字仍由现有外部语言模型处理，整套聊天并非离线运行。
 
 ## 构建
 
 在仓库根目录执行后端构建：
 
 ```sh
-docker build -t sekai-companion-backend:0.1.2 backend
+docker build -t sekai-companion-backend:0.1.3 backend
 docker build -t sekai-companion-whisper:0.1.2 deploy/sekai/whisper
+docker build -t sekai-companion-tts:0.1.3 deploy/sekai/tts
 python3 deploy/sekai/download-whisper-model.py "$HOME/services/sekai-companion/whisper-models/small"
+python3 deploy/sekai/download-tts-model.py "$HOME/services/sekai-companion/tts-models/kokoro-v1.0"
+python3 deploy/sekai/download-private-avatar.py "$HOME/services/sekai-companion/characters/live2d/miku"
 ```
 
 私人前端可以用标准 Docker 构建的 `--build-arg NEXT_PUBLIC_EIDOLON_WORK=project-sekai`。也可以先在主机安装锁定依赖、检查生产构建，再打包 standalone 产物，避免重复下载依赖：
@@ -19,7 +22,7 @@ cd frontend
 npm ci
 NEXT_PUBLIC_EIDOLON_WORK=project-sekai npm run build
 cd ..
-docker build -f frontend/Dockerfile.private -t sekai-companion-frontend:0.1.2 frontend
+docker build -f frontend/Dockerfile.private -t sekai-companion-frontend:0.1.3 frontend
 ```
 
 两种方式都排除旧角色海报、礼物与重置卡插画。不开作品开关时，标准 Dockerfile 保留原应用。不要把 `Dockerfile.private` 用于没有设置作品开关的构建产物。
@@ -57,9 +60,9 @@ curl --cacert "$HOME/services/sekai-companion/tls/root-ca.crt" https://192.168.1
 
 `.env` 中设置 `EIDOLON_PRIVATE_ORIGIN=https://192.168.1.112:18740`；地址必须与实际入口完全一致。Cookie 将变为 Secure，旧的 HTTP 页面跳转过去后需重新登录。自签证书不自动获得浏览器信任：仅点击忽略证书警告不保证麦克风可用，需完成客户端信任。当前开放单段录音转写；完整双向通话还需语音合成与通话流程集成。
 
-## 静态形象与本地语音输入
+## 形象与本地语音输入、朗读
 
-私人对话页在角色配置包含 `background` 时展示「形象预览」。本机使用 [Live2D 官方 Miku 免费样例](https://www.live2d.com/en/learn/sample/hatsune-miku/)页面的静态展示图，来源与 SHA-256 记录见 `examples/project-sekai/assets.json`。这是经典 Miku 外观，不是教室的世界服装。第三方图片和模型只存放在私有角色目录，不随代码或镜像分发；未安装 Live2D 动态渲染器。免费分发样例不等于开源模型。
+私人对话页提供「形象预览」，可加载下述旧版 Cubism2 动态样例。静态回退使用 [Live2D 官方 Miku 免费样例](https://www.live2d.com/en/learn/sample/hatsune-miku/)页面的展示图，来源与 SHA-256 记录见 `examples/project-sekai/assets.json`。这些均为经典 Miku 外观，不是教室的世界服装。第三方图片、模型和专有运行库只存放在私有角色目录，不随代码或镜像分发。免费可获取不等于开源授权。
 
 可将该公开展示图下载到私有角色目录的 `images/miku-live2d-preview.jpg`，再添加：
 
@@ -67,11 +70,17 @@ curl --cacert "$HOME/services/sekai-companion/tls/root-ca.crt" https://192.168.1
 background = "images/miku-live2d-preview.jpg"
 ```
 
-完整模型候选包含 `.moc3`、`.motion3.json`、物理及模型配置；当前下载端返回 403，未把候选模型冒充已安装模型。
+当前官方 Cubism3 模型下载端仍返回403；本版另使用公开镜像的经典 Miku 旧版 Cubism2 样例，实际格式为 `.moc`、`.mtn`、纹理和物理配置。固定来源revision及各文件SHA-256记录在 `examples/project-sekai/assets.json` 的 `dynamic_model`。模型与旧版运行库仅放私有角色目录，不进入Git或镜像；免费可获取与开源授权不同，不能据此声称模型开源。
 
-对话输入栏提供录音输入：明确开始后才申请麦克风，最长 30 秒，停止后送到本部署的 Whisper 转写。结果供用户校对、填入草稿；不会自动发送或覆盖原有草稿。只有用户点击发送后的文字进入既有对话流程。录音仅在请求与内存中临时处理，不保存到数据库或备份，也不发送给云端语音服务。使用麦克风仍需先完成客户端 CA 信任；Whisper 是识别服务，当前角色回复仍为文字。
+模型目录及其祖先由部署者管理并只读挂载，API不接受用户指定的文件路径。设置 `EIDOLON_PRIVATE_LIVE2D_DIR=/characters/live2d/miku` 后，已登录用户在「形象预览」按需加载模型。渲染器与SDK均同源加载，不访问CDN。预览关闭时销毁渲染器；没有WebGL或模型加载失败时保留静态预览。样例是经典服装，教室的世界服装待适配；当前不承诺声音口型同步。
 
-Compose 将 `EIDOLON_LOCAL_WHISPER_URL` 固定为 `http://whisper:8000`，将 `EIDOLON_READ_ALOUD_ENABLED` 设为 `0`，因此火山接口不会被调用，原朗读入口隐藏。历史配置说明保留在 [语音朗读说明](../../docs/sekai-read-aloud.md)，以后若启用合成须另行选择模型和音色。本版没有恢复完整电话入口。
+对话输入栏提供录音输入：明确开始后才申请麦克风，最长 30 秒，停止后送到本部署的 Whisper 转写。结果供用户校对、填入草稿；不会自动发送或覆盖原有草稿。只有用户点击发送后的文字进入既有对话流程。录音仅在请求与内存中临时处理，不保存到数据库或备份，也不发送给云端语音服务。使用麦克风仍需先完成客户端 CA 信任；Whisper 是识别服务，角色回复生成后可另行点击本地朗读。
+
+Compose 将 `EIDOLON_LOCAL_WHISPER_URL` 固定为 `http://whisper:8000`，`EIDOLON_LOCAL_TTS_URL` 固定为 `http://tts:8000`，`EIDOLON_READ_ALOUD_ENABLED=1`。有本地TTS配置时只调用本地服务，不回退火山。历史火山配置说明保留在 [语音朗读说明](../../docs/sekai-read-aloud.md)，本部署不需要该服务密钥。
+
+回复旁可点击朗读，播放中再点击停止。只有本人会话中已保存的角色回复可以朗读；优先读日语正文，没有日语时读中文。Kokoro v1.0 INT8 权重约92MB，加上音色和日语词典，使用CPU四线程、24kHz单声道WAV；无torch或GPU依赖。最长300字、60秒输出，超过界限会提示选择较短回复，不静默截断。日语为 `jf_alpha`、中文为 `zf_xiaobei`，均为普通合成音色，非官方角色声音，不复刻Miku声纹。浏览器若拦截首次播放，可点击「播放朗读」重试，不重新合成。
+
+`SEKAI_TTS_MODEL_DIR` 指向校验完成的模型目录；主后端与服务通过内部网络通信，TTS无主机端口和外网路由，非root、只读模型/根目录、4CPU/4GiB上限，只有有界/tmp供词典缓存。音频不保存，日语使用锁定的 Misaki Cutlet 和随镜像预装的 UniDic-lite 词典，不在启动时下载；权重/音色单独只读挂载。启动预热仅用固定公开文本。完整双向电话入口仍未启用。
 
 识别服务没有持久化音频目录；取消上传和转写会释放浏览器资源。已进入 CPU 推理的请求可能继续完成当前有界任务，任务完成前不接受新的推理，避免取消后堆积工作。真实准确率和延迟取决于录音质量与主机负载，识别结果可在发送前修正。
 
@@ -113,3 +122,5 @@ docker compose --env-file compose.env -f compose.yml exec -T backup python /ops/
 `restore <archive> --output <new-file>` 只写新文件，拒绝覆盖已存在的数据库。正式数据回滚前先停止前后端、另做快照，再把已验证的恢复文件交给部署者确认后替换；首版部署未覆盖任何原应用数据库。
 
 代码回滚使用旧的本地镜像标签或保留的 image ID，修改 `compose.env` 的 `SEKAI_FRONTEND_IMAGE` / `SEKAI_BACKEND_IMAGE` 后重新 `up -d`，数据库卷保持原样。本次新增登录身份不改原有表结构。源码入口在应用导航的 GitHub 链接中，许可证沿用 AGPL-3.0-or-later；角色与第三方素材权利另计。
+
+若原生TTS推理持续卡住，在运行目录执行 `docker compose --env-file compose.env -f compose.yml restart tts`。取消请求不会强制终止已进入原生推理的工作，实际工作结束前拒绝新任务；重启无需移除模型或数据卷。

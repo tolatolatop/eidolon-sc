@@ -16,6 +16,7 @@
     "@base-ui/react": "^1.9.0",
     "@pipecat-ai/client-js": "^1.13.1",
     "@pipecat-ai/small-webrtc-transport": "^1.10.8",
+    "@pixi/unsafe-eval": "6.5.10",
     "@shadcn/react": "^0.3.1",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
@@ -25,6 +26,8 @@
     "modern-screenshot": "^4.7.0",
     "next": "^16.3.8",
     "ogl": "^1.0.11",
+    "pixi-live2d-display": "0.4.0",
+    "pixi.js": "6.5.10",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-markdown": "^10.1.0",
@@ -49,5 +52,10 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^5",
     "vitest": "^5.0.3"
+  },
+  "overrides": {
+    "pixi-live2d-display": {
+      "gh-pages": "6.3.0"
+    }
   }
 }

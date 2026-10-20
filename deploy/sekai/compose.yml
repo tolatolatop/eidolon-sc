@@ -2,7 +2,7 @@ name: sekai-companion
 
 services:
   backend:
-    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.2}
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.3}
     env_file: ${SEKAI_ENV_FILE:?set SEKAI_ENV_FILE to the private runtime configuration}
     environment:
       HOST: 0.0.0.0
@@ -11,8 +11,10 @@ services:
       EIDOLON_CHARACTERS_PATH: /characters/characters.toml
       EIDOLON_DEV_LOGIN: "0"
       EIDOLON_AFFINITY_AND_GIFTS: "0"
-      EIDOLON_READ_ALOUD_ENABLED: "0"
+      EIDOLON_READ_ALOUD_ENABLED: "1"
       EIDOLON_LOCAL_WHISPER_URL: http://whisper:8000
+      EIDOLON_LOCAL_TTS_URL: http://tts:8000
+      EIDOLON_PRIVATE_LIVE2D_DIR: /characters/live2d/miku
     networks:
       - default
       - asr
@@ -29,7 +31,7 @@ services:
     restart: unless-stopped
 
   backup:
-    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.2}
+    image: ${SEKAI_BACKEND_IMAGE:-sekai-companion-backend:0.1.3}
     env_file: ${SEKAI_BACKUP_ENV_FILE:?set SEKAI_BACKUP_ENV_FILE to the backup key configuration}
     command: [python, /ops/private_backup.py, loop]
     volumes:
@@ -48,7 +50,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ${SEKAI_FRONTEND_IMAGE:-sekai-companion-frontend:0.1.2}
+    image: ${SEKAI_FRONTEND_IMAGE:-sekai-companion-frontend:0.1.3}
     environment:
       BACKEND_URL: http://backend:8000
       HOSTNAME: 0.0.0.0
@@ -84,6 +86,36 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=67108864,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 4
+      start_period: 120s
+    init: true
+    restart: unless-stopped
+
+  tts:
+    image: ${SEKAI_TTS_IMAGE:-sekai-companion-tts:0.1.3}
+    environment:
+      HF_HUB_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      OMP_NUM_THREADS: "4"
+      OPENBLAS_NUM_THREADS: "1"
+    volumes:
+      - ${SEKAI_TTS_MODEL_DIR:?set SEKAI_TTS_MODEL_DIR to the verified Kokoro directory}:/models:ro
+    networks:
+      - asr
+    cpus: 4.0
+    mem_limit: 4g
+    pids_limit: 128
+    read_only: true
+    tmpfs:
+      - /tmp:size=134217728,mode=1777
     cap_drop:
       - ALL
     security_opt:
@@ -133,7 +165,7 @@ networks:
     ipam:
       config:
         - subnet: ${SEKAI_SUBNET:-10.211.39.0/24}
-  # The recognizer has no outbound route and no host port. Only backend joins both networks.
+  # Speech services have no outbound route or host port. Backend joins both networks.
   asr:
     internal: true
     ipam:

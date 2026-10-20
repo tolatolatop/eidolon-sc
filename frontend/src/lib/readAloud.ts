@@ -120,9 +120,18 @@ export class ReadAloud {
   }
 }
 
-export async function readAloudAvailable(signal: AbortSignal): Promise<"ready" | "unconfigured" | "disabled"> {
-  const status = await json<{ available: boolean; enabled?: boolean }>(await api("/api/read-aloud", { signal }));
-  return status.enabled === false ? "disabled" : status.available ? "ready" : "unconfigured";
+export type ReadAloudAvailability = {
+  availability: "ready" | "unconfigured" | "unready" | "disabled";
+  provider: "kokoro" | "volcengine";
+};
+
+export async function readAloudAvailable(signal: AbortSignal): Promise<ReadAloudAvailability> {
+  const status = await json<{ available: boolean; enabled?: boolean; provider?: string }>(await api("/api/read-aloud", { signal }));
+  const provider = status.provider === "kokoro" ? "kokoro" : "volcengine";
+  return {
+    availability: status.enabled === false ? "disabled" : status.available ? "ready" : provider === "kokoro" ? "unready" : "unconfigured",
+    provider,
+  };
 }
 
 /** Pending replies use temporary keys; only persisted, complete replies have message IDs. */

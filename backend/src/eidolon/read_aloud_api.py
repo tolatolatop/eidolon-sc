@@ -9,7 +9,7 @@ from typing import Iterator, Literal
 
 from fastapi import FastAPI, HTTPException, Request, Response
 
-from eidolon import volcengine_tts
+from eidolon import local_tts, volcengine_tts
 from eidolon.assembly import Backend
 from eidolon.delivery_cues import without_cues
 from eidolon.sessions import UserId
@@ -57,6 +57,8 @@ async def _audio(
 ) -> bytes:
     """Disconnect/stop aborts upstream instead of leaving a paid task behind."""
     synthesis = asyncio.create_task(
+        local_tts.synthesize(backend.settings.local_tts_url, text, language=language)
+        if backend.settings.local_tts_url else
         volcengine_tts.synthesize(backend.settings, text, language=language)
     )
     disconnected = asyncio.create_task(_until_disconnected(request))
@@ -82,10 +84,18 @@ def add_read_aloud_routes(app: FastAPI, backend: Backend) -> None:
             raise HTTPException(404, "没有此功能")
 
     @app.get("/api/read-aloud")
-    def availability(user_id: UserId) -> dict:
+    async def availability(user_id: UserId, response: Response) -> dict:
         private_only()
+        response.headers["Cache-Control"] = "no-store"
         if not settings.read_aloud_enabled:
             return {"available": False, "enabled": False}
+        if settings.local_tts_url:
+            ready = await local_tts.ready(settings.local_tts_url)
+            return {
+                "available": ready, "provider": "kokoro", "reason": "ready" if ready else "unready",
+                "languages": ["ja", "zh-cn"], "voices": {"ja": "jf_alpha", "zh-cn": "zf_xiaobei"},
+                "disclaimer": "本地合成音色，非官方角色声音",
+            }
         return {"available": volcengine_tts.configured(settings)}
 
     @app.post("/api/conversations/{conversation_id}/messages/{message_id}/read-aloud")
@@ -103,19 +113,26 @@ def add_read_aloud_routes(app: FastAPI, backend: Backend) -> None:
         message = store.owned_message(conversation_id, message_id, user_id)
         if message is None or message.role != "character":
             raise HTTPException(404, "没有可朗读的回复")
-        text = without_cues(message.ja or message.text or "").strip()
+        language: Literal["ja", "zh-cn"] = "zh-cn"
+        text = ""
+        for candidate, candidate_language in ((message.ja, "ja"), (message.zh, "zh-cn"), (message.text, "zh-cn")):
+            text = without_cues(candidate or "").strip()
+            if text:
+                language = "ja" if candidate_language == "ja" else "zh-cn"
+                break
         if not text:
             raise HTTPException(422, "这条回复没有可朗读的文字")
-        if (len(text) > volcengine_tts.MAX_TEXT_CHARACTERS
-                or len(text.encode()) > volcengine_tts.MAX_TEXT_BYTES):
+        provider = local_tts if settings.local_tts_url else volcengine_tts
+        if (len(text) > provider.MAX_TEXT_CHARACTERS
+                or len(text.encode()) > provider.MAX_TEXT_BYTES):
             raise HTTPException(422, "这条回复过长，暂时不能朗读")
-        if not volcengine_tts.configured(settings):
+        if not settings.local_tts_url and not volcengine_tts.configured(settings):
             raise HTTPException(503, "朗读待配置：需要火山引擎密钥和已授权音色")
         with limiter.hold(user_id):
             try:
-                audio = await _audio(request, backend, text, "ja" if message.ja else "zh-cn")
+                audio = await _audio(request, backend, text, language)
             except volcengine_tts.SynthesisFailed as error:
                 raise HTTPException(502, str(error)) from None
-        return Response(audio, media_type="audio/mpeg", headers={
+        return Response(audio, media_type="audio/wav" if settings.local_tts_url else "audio/mpeg", headers={
             "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff",
         })
