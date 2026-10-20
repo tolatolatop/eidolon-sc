@@ -1077,6 +1077,19 @@ class Store:
             ).fetchall()
         return [_message_with_photo(row) for row in rows]
 
+    def owned_message(
+        self, conversation_id: str, message_id: int, user_id: str,
+    ) -> Message | None:
+        """A complete saved message, only from this user's given conversation."""
+        with self._lock:
+            row = self._db.execute(
+                f"SELECT {_MESSAGE_WITH_PHOTO}"
+                " JOIN conversations c ON c.id = m.conversation_id"
+                " WHERE m.conversation_id = ? AND m.id = ? AND c.user_id = ?",
+                (conversation_id, message_id, user_id),
+            ).fetchone()
+        return _message_with_photo(row) if row is not None else None
+
     def record(self, conversation_id: str) -> list[Recorded]:
         """The conversation's messages and events in the order things happened: a turn
         where the user's words were said, its two messages together, an event where it

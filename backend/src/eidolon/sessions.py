@@ -34,13 +34,13 @@ def set_session_cookie(response: Response, token: str, settings: Settings) -> No
         path="/",
         httponly=True,
         samesite="lax",
-        secure=settings.domain is not None,
+        secure=settings.secure_cookies,
     )
 
 
 def clear_session_cookie(response: Response, settings: Settings) -> None:
     response.delete_cookie(
-        SESSION_COOKIE, path="/", httponly=True, samesite="lax", secure=settings.domain is not None
+        SESSION_COOKIE, path="/", httponly=True, samesite="lax", secure=settings.secure_cookies
     )
 
 
@@ -49,6 +49,8 @@ def origin_allowed(origin: str | None, signed_in: bool, settings: Settings) -> b
     say where such a request comes from, so one that carries the session cookie must;
     one without the cookie gets nowhere anyway. In development any page on this machine
     is the site."""
+    if settings.private_origin is not None:
+        return origin == settings.private_origin
     if origin is None:
         return not signed_in
     if settings.domain is not None:

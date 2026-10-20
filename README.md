@@ -27,6 +27,8 @@ Eidolon-SC 让你以 **283 事务所制作人**的身份，和原作中的偶像
 
 原作八个组合的 **28 位偶像**都已经配好，可以直接对话。部署到公网后，任何人都能用 Google 或 GitHub 登录使用。
 
+本分支的 TOL-278 迁移实验已提供[私人文字版 v0.1.0](deploy/sekai/README.md)：教室世界初音、同行者身份、三幕原创练习、口令登录和独立数据库。另有[角色配置](examples/project-sekai/README.md)与[迁移研究](docs/research/project-sekai-migration.md)。私人门面通过构建开关启用，未导入正式剧情或媒体。
+
 > [!IMPORTANT]
 > 本项目是非官方的粉丝作品，与万代南梦宫及《偶像大师》系列的版权方无关，角色由 AI 扮演。剧情数据**不随仓库分发**，需要自行准备（[ADR-0003](docs/adr/0003-corpus-and-voices-stay-private.md)）；角色会通过回复间接地把剧情内容提供给登录的用户，这一风险见 [ADR-0006](docs/adr/0006-open-to-the-public-with-oauth.md)。
 

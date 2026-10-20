@@ -79,15 +79,16 @@ export function SignInSettings() {
       {methods.length > 0 && (
         <ul className="flex flex-col divide-y">
           {methods.map((method) => {
-            const label = PROVIDER_LABELS[method.provider];
+            const provider = method.provider;
+            const label = provider === "private" ? copy.login.privatePassword : PROVIDER_LABELS[provider];
             const unlinkButton = (
               <Button
                 variant="ghost"
                 size="sm"
                 aria-label={t.unlinkLabel(label)}
-                disabled={onlyOne}
+                disabled={onlyOne || provider === "private"}
                 focusableWhenDisabled
-                onClick={() => unlink(method.provider)}
+                onClick={() => { if (provider !== "private") void unlink(provider); }}
               >
                 {t.unlink}
               </Button>
@@ -100,7 +101,7 @@ export function SignInSettings() {
                     {method.email ? `${method.display_name} · ${method.email}` : method.display_name}
                   </span>
                 </div>
-                {onlyOne ? (
+                {provider === "private" ? null : onlyOne ? (
                   // 禁用的按钮照样能拿到焦点（focusableWhenDisabled），键盘和指针都看得到为什么不能解绑。
                   <Tooltip>
                     <TooltipTrigger render={unlinkButton} />

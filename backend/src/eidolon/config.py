@@ -2,6 +2,7 @@
 
 import base64
 import hmac
+import ipaddress
 import json
 import logging
 import os
@@ -10,6 +11,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal, Required, TypedDict, get_args
 from urllib.parse import urlsplit, urlunsplit
+
+from eidolon.private_login import valid_password_hash
 
 log = logging.getLogger(__name__)
 
@@ -410,6 +413,21 @@ class Settings:
     """The public deployment's domain (behind Caddy); None in development."""
     dev_login: bool = False
     """Lets anyone sign in as any user by name, for development and tests only."""
+    private_password_hash: str | None = field(default=None, repr=False)
+    """The single-owner access password's scrypt hash; never the password itself."""
+    private_origin: str | None = None
+    """The explicit browser origin of a private deployment, including its scheme and port."""
+    local_whisper_url: str | None = None
+    """Administrator-selected private Whisper sidecar; never supplied by users."""
+    local_tts_url: str | None = None
+    """Administrator-selected offline Kokoro sidecar; never supplied by users."""
+    read_aloud_enabled: bool = True
+    private_live2d_dir: Path | None = None
+    """Administrator-selected read-only classic Miku assets, private deployment only."""
+    volcengine_tts_api_key: str | None = field(default=None, repr=False)
+    """Private read-aloud only; separate from Fish calls, billing and health checks."""
+    volcengine_tts_speaker: str | None = None
+    volcengine_tts_resource_id: str = "seed-tts-2.0"
     github: "OAuthSettings | None" = None
     """Signing in with GitHub; not offered unless configured."""
     google: "OAuthSettings | None" = None
@@ -433,6 +451,35 @@ class Settings:
     every character's call background without her stand."""
 
     def __post_init__(self) -> None:
+        for variable, url in (
+            ("EIDOLON_LOCAL_WHISPER_URL", self.local_whisper_url),
+            ("EIDOLON_LOCAL_TTS_URL", self.local_tts_url),
+        ):
+            if url is None:
+                continue
+            try:
+                parts = urlsplit(url)
+                valid_url = (
+                    parts.scheme in {"http", "https"} and bool(parts.hostname)
+                    and parts.username is None and parts.password is None
+                    and not parts.query and not parts.fragment
+                    and parts.path in {"", "/"} and parts.port != 0
+                )
+            except ValueError:
+                valid_url = False
+            if not valid_url:
+                raise RuntimeError(f"{variable} 须为不含凭据、路径或查询的 HTTP(S) 服务地址")
+        if self.private_password_hash is not None:
+            if not valid_password_hash(self.private_password_hash):
+                raise RuntimeError("EIDOLON_PRIVATE_PASSWORD_HASH 格式无效，应为 scrypt-v1 盐与摘要")
+            if self.dev_login:
+                raise RuntimeError("EIDOLON_DEV_LOGIN 与私人访问口令不能同时启用")
+        if self.private_origin is not None:
+            if self.private_password_hash is None or not _valid_private_origin(self.private_origin):
+                raise RuntimeError(
+                    "EIDOLON_PRIVATE_ORIGIN 须配合私人访问口令，使用规范的完整 HTTP(S) origin："
+                    "无路径、主机名小写（国际域名用 ASCII）、省略默认端口，IPv6 用压缩格式"
+                )
         if self.background_llm is None:
             object.__setattr__(self, "background_llm", self.chat_llm)
         if self.dev_login and self.domain:
@@ -459,7 +506,14 @@ class Settings:
     def public_origin(self) -> str:
         """Where browsers reach the site: the domain over HTTPS, or the frontend's
         development server."""
+        if self.private_origin is not None:
+            return self.private_origin
         return f"https://{self.domain}" if self.domain else "http://localhost:3000"
+
+    @property
+    def secure_cookies(self) -> bool:
+        """Whether the browser reaches this deployment over HTTPS."""
+        return self.public_origin.startswith("https://")
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -498,6 +552,17 @@ class Settings:
             service_status=service_status_from_env(),
             domain=os.environ.get("EIDOLON_DOMAIN", "").strip() or None,
             dev_login=os.environ.get("EIDOLON_DEV_LOGIN", "").strip() == "1",
+            private_password_hash=os.environ.get("EIDOLON_PRIVATE_PASSWORD_HASH") or None,
+            private_origin=os.environ.get("EIDOLON_PRIVATE_ORIGIN") or None,
+            local_whisper_url=os.environ.get("EIDOLON_LOCAL_WHISPER_URL", "").strip() or None,
+            local_tts_url=os.environ.get("EIDOLON_LOCAL_TTS_URL", "").strip() or None,
+            read_aloud_enabled=os.environ.get("EIDOLON_READ_ALOUD_ENABLED", "1") != "0",
+            private_live2d_dir=(Path(value) if (value := os.environ.get("EIDOLON_PRIVATE_LIVE2D_DIR")) else None),
+            volcengine_tts_api_key=os.environ.get("VOLCENGINE_TTS_API_KEY", "").strip() or None,
+            volcengine_tts_speaker=os.environ.get("VOLCENGINE_TTS_SPEAKER", "").strip() or None,
+            volcengine_tts_resource_id=(
+                os.environ.get("VOLCENGINE_TTS_RESOURCE_ID", "seed-tts-2.0").strip()
+            ),
             github=OAuthSettings.from_env("GITHUB"),
             google=OAuthSettings.from_env("GOOGLE"),
             secret_key=os.environ.get("EIDOLON_SECRET_KEY") or None,
@@ -506,6 +571,40 @@ class Settings:
             admins=admins_from_env(),
             contact=os.environ.get("EIDOLON_CONTACT", "").strip() or None,
         )
+
+
+def _valid_private_origin(value: str) -> bool:
+    """Accept only origins a browser serializes identically, for strict comparisons."""
+    try:
+        parts = urlsplit(value)
+        hostname = parts.hostname or ""
+        if ":" in hostname:
+            hostname = f"[{ipaddress.IPv6Address(hostname).compressed}]"
+        else:
+            hostname = hostname.encode("idna").decode("ascii")
+            # Browsers also expand short/numeric IPv4 forms; require dotted decimal.
+            try:
+                hostname = str(ipaddress.IPv4Address(hostname))
+            except ValueError:
+                last_label = hostname.rstrip(".").rsplit(".", 1)[-1]
+                if last_label.isdigit() or last_label.startswith("0x"):
+                    return False
+        port = parts.port
+        if port == {"http": 80, "https": 443}.get(parts.scheme):
+            port = None
+        canonical = f"{parts.scheme}://{hostname}" + (f":{port}" if port is not None else "")
+        return (
+            parts.scheme in {"http", "https"} and bool(parts.hostname)
+            and parts.username is None and parts.password is None
+            and not parts.path and not parts.query and not parts.fragment
+            and not any(c.isspace() or c in "\\%" for c in value)
+            and not parts.netloc.endswith(":")
+            and (parts.port is None or 1 <= parts.port <= 65535)
+            and urlunsplit(parts) == value
+            and canonical == value
+        )
+    except (ValueError, UnicodeError):
+        return False
 
 
 def _stt_provider() -> SttProvider:

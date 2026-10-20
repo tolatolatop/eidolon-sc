@@ -7,6 +7,7 @@ import { useDirectory } from "@/components/conversations/ConversationDirectory";
 import { Field, FieldContent, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { copy } from "@/i18n";
+import { isProjectSekai, PRIVATE_WORK } from "@/lib/work";
 
 const t = copy.settings.appearance;
 
@@ -19,6 +20,7 @@ export function AppearanceSettings() {
   const id = useId();
 
   if (!account) return null;
+  if (isProjectSekai) return <SettingsSection><p className="text-body text-muted-foreground">{PRIVATE_WORK.appearance}</p></SettingsSection>;
 
   return (
     <SettingsSection>

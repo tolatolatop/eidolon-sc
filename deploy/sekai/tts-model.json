@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "model": "Kokoro-82M v1.0 INT8",
+  "runtime": "kokoro-onnx",
+  "model_license": "Apache-2.0",
+  "source": "https://github.com/thewh1teagle/kokoro-onnx",
+  "upstream_model": "https://huggingface.co/hexgrad/Kokoro-82M",
+  "runtime_files": [
+    {
+      "name": "kokoro-v1.0.int8.onnx",
+      "size": 92361271,
+      "sha256": "6e742170d309016e5891a994e1ce1559c702a2ccd0075e67ef7157974f6406cb",
+      "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/kokoro-v1.0.int8.onnx"
+    },
+    {
+      "name": "voices-v1.0.bin",
+      "size": 28214398,
+      "sha256": "bca610b8308e8d99f32e6fe4197e7ec01679264efed0cac9140fe9c29f1fbf7d",
+      "url": "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
+    }
+  ],
+  "voices": {
+    "ja": "jf_alpha",
+    "zh-cn": "zf_xiaobei"
+  },
+  "japanese_frontend": {
+    "implementation": "misaki.cutlet.Cutlet",
+    "misaki_version": "0.9.4",
+    "dictionary": "unidic-lite",
+    "dictionary_version": "1.0.8",
+    "delivery": "installed_in_runtime_image_by_uv_lock",
+    "dictionary_sdist_sha256": "db9d4572d9fdd4d00a97949d4b0741ec480ee05a7e7e2e32f547500dae27b245",
+    "dictionary_source": "https://pypi.org/project/unidic-lite/1.0.8/",
+    "runtime_downloads": false
+  }
+}

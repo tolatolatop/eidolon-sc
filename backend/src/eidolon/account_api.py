@@ -16,6 +16,7 @@ callback then sends the browser back to the sign-in settings (`/settings/sign-in
 `?linked=<provider>` or `?error=<reason>`.
 """
 
+import json
 import logging
 import secrets
 from typing import Annotated, Any
@@ -23,7 +24,9 @@ from typing import Annotated, Any
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field, Secret, StringConstraints, field_validator, model_validator
+from starlette.concurrency import run_in_threadpool
 
+from eidolon import private_login
 from eidolon.accounts import SignInRefused, is_admin
 from eidolon.activity import host
 from eidolon.assembly import Backend
@@ -239,11 +242,14 @@ def add_account_routes(app: FastAPI, backend: Backend) -> None:
         """The ways to sign in on offer, in the order to show them, and how to reach the
         deployer, which the sign-in page tells a banned user (None if the deployer gave
         none)."""
-        return {
+        offered = {
             "providers": [p for p in PROVIDER_NAMES if p in providers],
             "dev_login": settings.dev_login,
             "contact": settings.contact,
         }
+        if settings.private_password_hash is not None:
+            offered["private_login"] = True
+        return offered
 
     @app.get("/api/auth/{provider}/start")
     def start_sign_in(provider: str, request: Request, link: bool = False) -> RedirectResponse:
@@ -267,7 +273,7 @@ def add_account_routes(app: FastAPI, backend: Backend) -> None:
             path="/api/auth",
             httponly=True,
             samesite="lax",
-            secure=settings.domain is not None,
+            secure=settings.secure_cookies,
         )
         return response
 
@@ -346,6 +352,8 @@ def add_account_routes(app: FastAPI, backend: Backend) -> None:
     @app.delete("/api/account/sign-in-methods/{provider}", status_code=204)
     def unlink(provider: str, user_id: UserId) -> None:
         """Stop signing in with the identity at `provider`; never the last one."""
+        if provider == "private":
+            raise HTTPException(409, "私人访问口令由部署配置管理，不能解绑")
         try:
             found = store.remove_sign_in_method(user_id, provider)
         except LastSignInMethod:
@@ -459,6 +467,34 @@ def add_account_routes(app: FastAPI, backend: Backend) -> None:
     def consent(body: Consent, user: SignedIn) -> None:
         """Agree to the privacy policy and terms of use, which the rest of the API waits for."""
         store.consent(user.id, clock())
+
+    if settings.private_password_hash is not None:
+        password_hash = settings.private_password_hash
+
+        @app.post("/api/auth/private-login", status_code=204)
+        async def private_password_login(request: Request, response: Response) -> None:
+            # Read manually so malformed credentials get the same response and are never
+            # echoed by a validation error. The expensive hash runs outside the event loop.
+            try:
+                body = await request.json()
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                body = None
+            password = body.get("password") if isinstance(body, dict) else None
+            try:
+                valid = await run_in_threadpool(
+                    private_login.LOGIN_LIMITER.verify, password, password_hash
+                )
+            except private_login.LoginCooling as error:
+                raise HTTPException(
+                    429, str(error), headers={"Retry-After": str(error.retry_after)}
+                ) from None
+            if not valid:
+                raise HTTPException(401, "访问口令不正确")
+            try:
+                user = accounts.private_sign_in()
+            except SignInRefused:
+                raise HTTPException(403, "这位用户已被封禁") from None
+            signed_in(user.id, response, request)
 
     if settings.dev_login:
 

@@ -1,0 +1,117 @@
+{
+  "schema_version": 2,
+  "purpose": "private local experiment",
+  "display": "optional legacy Cubism2 dynamic preview and official static fallback; classic Miku, not school SEKAI costume",
+  "source_page": "https://www.live2d.com/en/learn/sample/hatsune-miku/",
+  "preview_url": "https://www.live2d.com/wp-content/uploads/2026/06/sample-img-miku.jpg",
+  "preview_sha256": "c6e2526ae2716b2c777396ed380c3e90015be3dbf2707e5a6ea5408f8194ae51",
+  "runtime_relative_path": "images/miku-live2d-preview.jpg",
+  "distribution": "not bundled with repository or images",
+  "model": {
+    "format": "Cubism 3.3 / moc3",
+    "download_status": "current official moc3 endpoint unavailable; legacy Cubism2 public mirror prepared separately",
+    "renderer_installed": false,
+    "open_source": false,
+    "free_sample": true
+  },
+  "dynamic_model": {
+    "source_repository": "https://github.com/Exrick/blog",
+    "source_revision": "64af2aa88b6313e269e99616d930f7ca07b61da8",
+    "format": "Cubism2",
+    "character": "classic_miku",
+    "not_school_sekai_costume": true,
+    "source_status": "public_third_party_mirror_of_legacy_sample",
+    "open_source_model": false,
+    "distribution": "private_runtime_only_not_in_git_or_images",
+    "files": [
+      {
+        "path": "miku.model.json",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/miku.model.json",
+        "size": 550,
+        "sha256": "5c19f67e98ba003f5e2622fab6e67f2edea79d7a46d0dd0d466c1c26649f42ac"
+      },
+      {
+        "path": "miku.moc",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/miku.moc",
+        "size": 192026,
+        "sha256": "192b25cfdf459a00b7a6b05d26811ab52c9784abf5c5efde676bdf2e044b4bbe"
+      },
+      {
+        "path": "miku.2048/texture_00.png",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/miku.2048/texture_00.png",
+        "size": 793781,
+        "sha256": "9bff275a58559769c6cbfba577029f4e54629eeb0fa01d52bdc7d97b9507ab72"
+      },
+      {
+        "path": "miku.physics.json",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/miku.physics.json",
+        "size": 1836,
+        "sha256": "2c26f6a91441432c887b91f9ed0f4136d596cc4d362e03a1fff6f9ecd58ff626"
+      },
+      {
+        "path": "motions/miku_m_01.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_01.mtn",
+        "size": 1090,
+        "sha256": "2bea7e21c038a12a2caca322c23c39574a9b36bc793f63bbaea558524560b40d"
+      },
+      {
+        "path": "motions/miku_m_02.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_02.mtn",
+        "size": 2682,
+        "sha256": "cda87a180eb134558da5cb69fe65d708f46603cbb057ee0a28f145924b2970fa"
+      },
+      {
+        "path": "motions/miku_m_03.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_03.mtn",
+        "size": 1844,
+        "sha256": "952b252f1cb9de6babc8433d00dfa3efdbf3ac3db87207e22e5c3c90fdcb5ba1"
+      },
+      {
+        "path": "motions/miku_m_04.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_04.mtn",
+        "size": 1859,
+        "sha256": "e205b84c1f3f0a0f72007ec6481ad1fb3b0f9e94c21f568a27323e4d7005d39b"
+      },
+      {
+        "path": "motions/miku_m_05.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_05.mtn",
+        "size": 3980,
+        "sha256": "dc048aa5c9661c7b7128c433bcb242ff0053d5036d6df9166c4bfc526bc3c259"
+      },
+      {
+        "path": "motions/miku_m_06.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_m_06.mtn",
+        "size": 1700,
+        "sha256": "f171e27f5bb3457aad16d49264c53c4629b806e2183e7004a39a20e08fb069c6"
+      },
+      {
+        "path": "motions/miku_shake_01.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_shake_01.mtn",
+        "size": 4134,
+        "sha256": "7abf4c373f08de92af6e9961775249f7c6609d7d31e9e4ce370c6bea59cb68c6"
+      },
+      {
+        "path": "motions/miku_idle_01.mtn",
+        "url": "https://raw.githubusercontent.com/Exrick/blog/64af2aa88b6313e269e99616d930f7ca07b61da8/live2d/assets/miku/motions/miku_idle_01.mtn",
+        "size": 12276,
+        "sha256": "287f2db30adb2e3fe5a6fa41c0bd050d7906bac755ffdc6a3893ce3c26aeb535"
+      },
+      {
+        "path": "live2d.min.js",
+        "url": "https://raw.githubusercontent.com/dylanNew/live2d/fd9fd400845e9a00bb194fdac0b6635c753a1e8a/webgl/Live2D/lib/live2d.min.js",
+        "size": 129056,
+        "sha256": "e4ea1f18bdd44b65394ffd5a1bab16982e88757d45134d1bd0737c8a6b3ddd08"
+      }
+    ],
+    "sdk": {
+      "source_repository": "https://github.com/dylanNew/live2d",
+      "source_revision": "fd9fd400845e9a00bb194fdac0b6635c753a1e8a",
+      "license": "Live2D proprietary runtime; see original SDK license",
+      "bundled_with_source": false
+    },
+    "runtime_relative_directory": "live2d/miku",
+    "renderer": "pixi-live2d-display 0.4.0 Cubism2 with PixiJS 6.5.10",
+    "renderer_installed": true,
+    "browser_validation": "real mesh rendered, action changes pixels, context released, mobile and fallback verified"
+  }
+}

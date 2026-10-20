@@ -1,3 +1,5 @@
+import { isProjectSekai } from "@/lib/work";
+
 // 外观（设置「外观」）：现在只有「SCSP 头像」一个开关（GLOSSARY.md「SCSP 头像」）。只存在这台设备上，
 // 在 localStorage 里按用户分开存（键为 eidolon.appearance.<用户 ID>）。读不到或数据坏了当作默认（关）；
 // 存不进去（隐私模式等）时不抛错，改动只留在页面内存里。
@@ -36,6 +38,6 @@ export function keepAppearance(userId: string, appearance: Appearance): void {
 
 /** 按外观换掉每位的头像：打开 SCSP 头像时用她的 SCSP 头像，她没有的照旧。 */
 export function withAppearance(characters: Character[], appearance: Appearance): Character[] {
-  if (!appearance.scspAvatars) return characters;
+  if (isProjectSekai || !appearance.scspAvatars) return characters;
   return characters.map((c) => (c.scsp_avatar_url ? { ...c, avatar_url: c.scsp_avatar_url } : c));
 }

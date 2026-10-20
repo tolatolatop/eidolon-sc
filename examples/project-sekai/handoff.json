@@ -1,0 +1,439 @@
+{
+  "schema_version": 4,
+  "issue": "TOL-278",
+  "date": "2026-10-20",
+  "repository": "https://github.com/tolatolatop/eidolon-sc",
+  "base_commit": "4f55fb03918dd0d59290181a8077c513f3bad488",
+  "branch": "tol-278-project-sekai-prototype",
+  "delivery": "private_local_tts_and_dynamic_miku_preview",
+  "character": {
+    "id": "miku-school",
+    "name": "初音ミク",
+    "unit_context": "Leo/need",
+    "sekai": "school",
+    "user_role": "同行者",
+    "edition_reference": "jp_official_public_intro",
+    "target_edition_confirmed": true,
+    "official_story_imported": false,
+    "scenario_type": "fan_original_prompt_outline",
+    "deterministic_story_state_machine": false,
+    "scenario_count": 3
+  },
+  "artifacts": {
+    "research": "docs/research/project-sekai-migration.md",
+    "setup_and_acceptance": "examples/project-sekai/README.md",
+    "configuration": "examples/project-sekai/characters.toml",
+    "sources": "examples/project-sekai/facts/miku-school.sources.md",
+    "deployment": "deploy/sekai/README.md",
+    "asset_sources": "examples/project-sekai/assets.json",
+    "read_aloud": "deploy/sekai/tts/README.md",
+    "tls_generator": "deploy/sekai/generate-tls.sh",
+    "voice_input": "deploy/sekai/whisper/README.md",
+    "whisper_model": "deploy/sekai/whisper-model.json",
+    "model_download": "deploy/sekai/download-whisper-model.py",
+    "tts_model": "deploy/sekai/tts-model.json",
+    "tts_download": "deploy/sekai/download-tts-model.py",
+    "avatar_download": "deploy/sekai/download-private-avatar.py"
+  },
+  "validation": {
+    "affected_backend_tests": {
+      "result": "passed",
+      "count": 177
+    },
+    "affected_frontend_tests": {
+      "result": "passed",
+      "count": 580,
+      "files": 39
+    },
+    "tts_service_tests": {
+      "result": "passed",
+      "count": 38,
+      "real_g2p_cases": 8
+    },
+    "ruff": "passed",
+    "pyright": "passed",
+    "typecheck": "passed",
+    "py_compile": "passed",
+    "frontend_discipline": "passed",
+    "scratch_check": "passed",
+    "production_frontend_build": "passed",
+    "backend_image_build": "passed",
+    "frontend_image_build": "passed",
+    "tts_image_build": "passed",
+    "independent_reviewers": 2,
+    "review_reports": 4,
+    "review_fixes": [
+      "official_v1_cutlet_g2p_and_bundled_unidic_lite",
+      "full_vocabulary_guard",
+      "whole_reply_g2p_preserves_words",
+      "actual_nonempty_ja_zh_legacy_fallback",
+      "explicit_abortable_readiness_retry",
+      "partial_avatar_cancel_releases_native_model_and_motion_requests",
+      "bounded_no_follow_existing_avatar_install_checks"
+    ],
+    "offline_tts": {
+      "network": "none",
+      "cpu_threads": 4,
+      "model_load_seconds": 2.958,
+      "ja_synthesis_seconds": 2.427,
+      "zh_synthesis_seconds": 2.285,
+      "public_sample_asr_roundtrip": "matches_text_ignoring_punctuation",
+      "benchmark_scope": "short_public_samples_not_general_accuracy_or_latency_claim"
+    },
+    "production_https_api": {
+      "tls_chain_and_ip": "passed",
+      "anonymous": 401,
+      "tts_ready": {
+        "available": true,
+        "provider": "kokoro",
+        "reason": "ready",
+        "languages": [
+          "ja",
+          "zh-cn"
+        ],
+        "voices": {
+          "ja": "jf_alpha",
+          "zh-cn": "zf_xiaobei"
+        },
+        "disclaimer": "本地合成音色，非官方角色声音"
+      },
+      "whisper_ready": true,
+      "model_assets": "authenticated same-origin with exact MIME/private no-store",
+      "unknown_and_traversal": 404,
+      "old_origin": 403,
+      "owned_reply_synthesis": {
+        "status": 200,
+        "seconds": 1.869,
+        "audio_seconds": 2.624,
+        "audio_saved": false,
+        "chat_sent": false
+      },
+      "cooldown": 429,
+      "wrong_conversation": 404,
+      "caller_supplied_text_rejected": 422
+    },
+    "browser": {
+      "tls": "strict CA/IP validation separately; browser ignores TLS errors",
+      "webgl": "headless Chromium SwiftShader",
+      "readiness_retry": "unready recovered with explicit retry, no refresh",
+      "real_playback": "generated WAV played, then paused and blob source released",
+      "dynamic_model": "real Cubism2 mesh/texture rendered; action changes pixels",
+      "close": "preview WebGL context lost after closing",
+      "mobile": "no horizontal overflow",
+      "reduced_motion": "static fallback without canvas",
+      "model_failure": "static fallback",
+      "chat_posts": 0,
+      "synthesis_posts": 1,
+      "outbound_origins": [],
+      "page_errors": 0
+    },
+    "actual_safari_device": "not_tested",
+    "physical_user_microphone": "not_tested",
+    "voice_similarity_to_miku": "not_claimed_not_cloned",
+    "private_chat_messages_preserved": 14,
+    "accounts_preserved": 1,
+    "conversations_preserved": 1,
+    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database",
+    "ci": "not_collected"
+  },
+  "isolation": {
+    "original_character_files_changed": false,
+    "existing_database_changed": false,
+    "game_installation_changed": false,
+    "example_database": "examples/project-sekai/.local/eidolon.db",
+    "legacy_sync_scripts_supported": false,
+    "media_assets_included": false,
+    "public_service_deployed": false,
+    "private_service_deployed": true,
+    "runtime_static_preview": true,
+    "bundled_third_party_images_or_models": false,
+    "additional_characters_added": false,
+    "runtime_dynamic_preview": true
+  },
+  "limitations": [
+    "generic_tts_voice_not_official_miku_voice_no_voice_cloning",
+    "record_then_edit_and_send_plus_click_read_aloud_only_no_complete_two_way_call",
+    "whole_chat_is_not_offline_sent_text_still_uses_existing_external_llm",
+    "real_physical_microphone_and_safari_device_acceptance_remains_user_check",
+    "unknown_phonemes_or_long_replies_are_rejected_without_silent_text_loss",
+    "foreground_recording_required_server_enforces_30_seconds",
+    "native_inference_cannot_be_forcibly_interrupted_restart_only_speech_service_if_stuck",
+    "single_character_and_prompt_driven_fan_original_scenes_only",
+    "official_story_import_and_multi_sekai_memory_are_not_implemented",
+    "legacy_classic_miku_model_not_school_costume_no_audio_lip_sync",
+    "gifts_affinity_not_enabled",
+    "lan_https_requires_client_trust_of_local_ca_no_public_domain_or_off_host_disaster_backup"
+  ],
+  "follow_up_issues": [
+    {
+      "key": "TOL-280",
+      "id": "01a15411-26aa-7ed8-86ed-aebdadcdc63f",
+      "status": "in_review",
+      "purpose": "human_scope_model_acceptance_and_rights"
+    },
+    {
+      "key": "TOL-281",
+      "id": "01a15411-46d4-767d-beac-ed7d54c9b346",
+      "status": "backlog",
+      "purpose": "story_adapter_and_memory_scope"
+    },
+    {
+      "key": "TOL-282",
+      "id": "01a15411-4704-7a95-8da2-3375b486605c",
+      "status": "in_review",
+      "purpose": "frontend_assets_and_release"
+    },
+    {
+      "key": "TOL-283",
+      "id": "01a15462-6b8f-7162-9187-4837006f28f7",
+      "status": "backlog",
+      "purpose": "volcengine_voice_synthesis_deferred_by_user"
+    }
+  ],
+  "rollback": "stop_compose_services_without_removing_database_volume_or_redeploy_retained_image_ids; snapshot_restore_never_overwrites_existing_files",
+  "version": "0.1.3",
+  "release_base_commit": "26db0d68f8aaf270a599d26a9b07f5f001165b73",
+  "deployment": {
+    "url": "https://192.168.1.112:18740",
+    "exposure": "trusted_lan_only",
+    "public_domain_configured": false,
+    "supervisor": "docker_compose_restart_unless_stopped",
+    "compose_project": "sekai-companion",
+    "containers": [
+      "sekai-companion-frontend-1",
+      "sekai-companion-backend-1",
+      "sekai-companion-backup-1",
+      "sekai-companion-gateway-1",
+      "sekai-companion-whisper-1",
+      "sekai-companion-tts-1"
+    ],
+    "database_volume": "sekai-companion-data",
+    "authentication": "single_owner_password",
+    "dev_login": false,
+    "password_delivery": "host_runtime_file_only_not_in_issue_or_git",
+    "backup": {
+      "encrypted": true,
+      "interval_hours": 24,
+      "retention_days": 14,
+      "off_host": false
+    },
+    "http_redirect_url": "http://192.168.1.112:18739",
+    "tls": {
+      "issuer": "local_test_ca",
+      "certificate_not_after": "2027-10-19",
+      "client_trust_required": true,
+      "private_keys_delivered": false
+    },
+    "read_aloud": {
+      "provider": "kokoro-onnx",
+      "model": "Kokoro-82M v1.0 INT8",
+      "enabled": true,
+      "configured": true,
+      "device": "cpu",
+      "threads": 4,
+      "voices": {
+        "ja": "jf_alpha",
+        "zh-cn": "zf_xiaobei"
+      },
+      "output": "PCM16 mono 24000Hz WAV",
+      "max_text_characters": 300,
+      "max_audio_seconds": 60,
+      "text_scope": "owned_saved_character_reply_only",
+      "audio_storage": "memory_only",
+      "cloud_fallback": false,
+      "automatic_playback": false,
+      "real_voice_cloned": false,
+      "two_way_call": false
+    },
+    "voice_input": {
+      "implementation": "faster-whisper",
+      "version": "1.2.1",
+      "model": "small_multilingual",
+      "model_revision": "536b0662742c02347bc0e980a01041f333bce120",
+      "device": "cpu",
+      "compute_type": "int8",
+      "threads": 4,
+      "max_seconds": 30,
+      "max_mib": 5,
+      "audio_storage": "memory_only",
+      "audio_sent_to_cloud": false,
+      "network": "docker_internal_only_no_published_port",
+      "requires_cloud_credentials": false,
+      "automatic_send": false,
+      "editable_result": true,
+      "draft_append": true,
+      "subsequently_sent_text": "existing_external_llm"
+    },
+    "dynamic_avatar": {
+      "format": "Cubism2",
+      "private_only": true,
+      "classic_costume": true,
+      "school_sekai_costume": false,
+      "lip_sync": false,
+      "assets_bundled_in_git_or_images": false,
+      "metadata": "examples/project-sekai/assets.json",
+      "csp_relaxed": false,
+      "external_browser_requests": false
+    }
+  },
+  "previous_release_validation": {
+    "version": "0.1.0",
+    "real_llm": {
+      "result": "passed",
+      "release_model": "anthropic/claude-sonnet-4.6",
+      "release_turns": 3,
+      "japanese_and_chinese_alignment": "passed_for_acceptance_cases",
+      "school_world_identity": "passed",
+      "fan_original_disclosure": "passed"
+    },
+    "restart_persistence": "session_and_conversation_retained",
+    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database"
+  },
+  "previous_v0_1_1_validation": {
+    "affected_backend_tests": {
+      "result": "passed",
+      "count": 346
+    },
+    "latest_protocol_and_api_tests": {
+      "result": "passed",
+      "count": 25
+    },
+    "affected_frontend_tests": {
+      "result": "passed",
+      "count": 563,
+      "files": 36
+    },
+    "test_counts_overlap": true,
+    "ruff": "passed",
+    "pyright": "passed",
+    "typecheck": "passed",
+    "py_compile": "passed",
+    "scratch_check": "passed",
+    "frontend_discipline": "passed",
+    "production_frontend_build": "passed",
+    "backend_image_build": "passed",
+    "frontend_image_build": "passed",
+    "independent_reviews": 2,
+    "review_fixes": [
+      "explicit_ja_and_zh_cn_tts_language",
+      "private_blob_audio_csp",
+      "no_resynthesis_after_autoplay_refusal",
+      "updated_data_flow_copy",
+      "short_viewport_scrollable_preview"
+    ],
+    "real_next_asgi_disconnect_with_mock_tts": "passed",
+    "browser": {
+      "certificate_test": "strict curl --cacert separately; browser harness ignores HTTPS errors",
+      "secure_cookie": true,
+      "secure_context": true,
+      "fake_microphone": true,
+      "unconfigured_tts": "honest disabled state",
+      "preview": "complete 1100px static official sample",
+      "mobile": "no overflow",
+      "landscape": "dialog bounded and attribution reachable",
+      "mock_audio": "played and stopped (not real Volcengine synthesis)",
+      "autoplay_recovery": "simulated NotAllowedError recovered without another TTS request",
+      "mock_failure": "visible safe error",
+      "old_origin": "403",
+      "unauthenticated": "401",
+      "page_errors": 0
+    },
+    "tls": {
+      "chain_and_ip_validation": "passed",
+      "wrong_ip": "rejected",
+      "untrusted_ca": "rejected",
+      "key_overwrite": "rejected",
+      "private_key_permissions": "0600"
+    },
+    "live_volcengine_tts": "not_tested_missing_credentials",
+    "actual_safari_device": "not_tested",
+    "private_chat_messages_preserved": 14,
+    "ci": "not_collected"
+  },
+  "previous_v0_1_2_validation": {
+    "affected_backend_tests": {
+      "result": "passed",
+      "count": 131
+    },
+    "affected_frontend_tests": {
+      "result": "passed",
+      "count": 565,
+      "files": 36
+    },
+    "whisper_service_tests": {
+      "result": "passed",
+      "count": 15
+    },
+    "ruff": "passed",
+    "pyright": "passed",
+    "typecheck": "passed",
+    "py_compile": "passed",
+    "frontend_discipline": "passed",
+    "production_frontend_build": "passed",
+    "backend_image_build": "passed",
+    "frontend_image_build": "passed",
+    "whisper_image_build": "passed",
+    "independent_reviews": 2,
+    "blocking_review_findings": 0,
+    "review_fixes": [
+      "monotonic_recording_clock_and_rollback_test"
+    ],
+    "real_model_offline_preflight": {
+      "network": "none",
+      "languages": [
+        "zh",
+        "ja",
+        "en"
+      ],
+      "silence": "empty",
+      "over_30_seconds": 422,
+      "load_seconds": 0.574,
+      "note": "public short samples, not an accuracy benchmark"
+    },
+    "production_https_api": {
+      "tls_chain_and_ip": "passed",
+      "zh_wav": "passed",
+      "ja_wav": "passed",
+      "chrome_webm_opus": "passed",
+      "aac_mp4": "passed",
+      "sample_request_seconds": [
+        1.45,
+        1.608
+      ],
+      "unauthenticated": 401,
+      "old_origin": 403,
+      "corrupt": 422,
+      "over_30_seconds": 422,
+      "bad_mime": 415,
+      "over_5_mib": 413,
+      "silence": "empty"
+    },
+    "browser": {
+      "certificate_test": "strict verified API test separately; browser ignores TLS errors",
+      "microphone": "public speech fixture via Chromium fake microphone",
+      "secure_cookie": true,
+      "secure_context": true,
+      "real_recording": {
+        "characters": 17,
+        "encoding": "Chromium MediaRecorder webm/opus",
+        "microphone_released": true
+      },
+      "overflow": "both original draft and editable recognition retained",
+      "append": "edited text appended with original draft, no automatic send",
+      "cancel": "microphone released; no upload",
+      "pagehide": "microphone released",
+      "tts": "entry and waiting-credentials notice hidden",
+      "mobile": "no horizontal overflow",
+      "chat_posts": 0,
+      "asr_posts": 1,
+      "page_errors": 0
+    },
+    "actual_safari_device": "not_tested",
+    "physical_user_microphone": "not_tested",
+    "private_chat_messages_preserved": 14,
+    "accounts_preserved": 1,
+    "conversations_preserved": 1,
+    "encrypted_snapshot_restore": "verified_in_temporary_sqlite_database",
+    "ci": "not_collected"
+  }
+}

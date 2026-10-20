@@ -90,6 +90,25 @@ class Accounts:
         )
         return user
 
+    def private_sign_in(self) -> User:
+        """The one private owner, independent of mutable or colliding display names."""
+        provider, subject, name = "private", "owner", "同行者"
+        if self.store.is_banned_identity(identity_hash(self._ban_key, provider, subject)):
+            raise SignInRefused("banned")
+        user_id = self.store.user_signing_in_with(provider, subject)
+        if user_id is None:
+            try:
+                return self.store.create_user_signing_in_with(
+                    name, SignInMethod(provider, subject, name, None, self.clock().isoformat())
+                )
+            except IdentityTaken:
+                user_id = self.store.user_signing_in_with(provider, subject)
+                assert user_id is not None
+        user = self.store.get_user(user_id)
+        if user.banned_at is not None:
+            raise SignInRefused("banned")
+        return user
+
     def link(self, user_id: str, identity: Identity) -> None:
         """Let the user sign in with this identity too; nothing happens if they already do.
         Raises SignInRefused."""

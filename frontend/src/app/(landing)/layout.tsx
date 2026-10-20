@@ -5,14 +5,15 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { headers } from "next/headers";
 
+import { isProjectSekai } from "@/lib/work";
+
 import { copy } from "@/i18n";
 
 import { TIER_SCRIPT } from "./tierScript";
 
 /**
- * 标题、描述和分享卡片（Open Graph、Twitter 卡片）。卡片的图是同目录下的 opengraph-image.jpg
- * （scripts/landing-og.mjs 生成），Next 按文件约定给 `/` 和 `/about` 都加上；X 没有 twitter:image 时
- * 用 og:image，不另放一份。卡片要绝对地址，而自托管的构建不知道部署在哪个域名下：按这次请求的地址拼
+ * 标题、描述和分享卡片。旧模式显式引用 public/sc-opengraph.jpg；私人实验只分享文字，
+ * 不使用文件约定，避免静态旧海报覆盖模式配置。卡片要绝对地址，按这次请求的地址拼
  * （Caddy 转发时带着原来的 Host 和 X-Forwarded-Proto）。
  */
 export async function generateMetadata(): Promise<Metadata> {
@@ -28,11 +29,13 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: "zh_CN",
       title: copy.share.title,
       description: copy.share.description,
+      images: isProjectSekai ? [] : [{ url: "/sc-opengraph.jpg", width: 1200, height: 630, alt: copy.share.title }],
     },
     twitter: {
-      card: "summary_large_image",
+      card: isProjectSekai ? "summary" : "summary_large_image",
       title: copy.share.title,
       description: copy.share.description,
+      images: isProjectSekai ? [] : ["/sc-opengraph.jpg"],
     },
   };
 }
@@ -106,9 +109,9 @@ const fontVariables = [jaAct0, ja, zhTitleAct0, zhTitle, zhAct0, zh].map((f) => 
  */
 export default function LandingLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" className={`dark ${fontVariables}`} suppressHydrationWarning>
+    <html lang="zh-CN" className={isProjectSekai ? "private-work" : `dark ${fontVariables}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: TIER_SCRIPT }} />
+        {!isProjectSekai && <script dangerouslySetInnerHTML={{ __html: TIER_SCRIPT }} />}
       </head>
       <body>{children}</body>
     </html>

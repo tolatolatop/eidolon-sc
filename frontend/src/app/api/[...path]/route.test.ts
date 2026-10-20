@@ -19,6 +19,20 @@ describe("forwarding /api/* to the backend", () => {
     vi.unstubAllGlobals();
   });
 
+  it("forwards browser cancellation to an in-flight read-aloud request", async () => {
+    const controller = new AbortController();
+    const request = new Request("http://localhost:3000/api/conversations/c/messages/12/read-aloud", {
+      method: "POST", signal: controller.signal,
+    });
+    const fetch = backendAnswers(() => new Response("mp3", { headers: { "content-type": "audio/mpeg" } }));
+    await POST(request, { params: Promise.resolve({ path: ["conversations", "c", "messages", "12", "read-aloud"] }) });
+    const signal = fetch.mock.calls[0][1].signal;
+    expect(signal).toBe(request.signal);
+    expect(signal?.aborted).toBe(false);
+    controller.abort();
+    expect(signal?.aborted).toBe(true);
+  });
+
   it("passes on what the browser needs to cache an avatar", async () => {
     backendAnswers(
       () =>

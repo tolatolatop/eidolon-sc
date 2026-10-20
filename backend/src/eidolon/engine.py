@@ -579,13 +579,19 @@ class ConversationEngine:
             if eligibility is not None else None
         )
         prompt = self._prompt(
-            character, world_prompt, producer_prompt(profile),
+            character, world_prompt, producer_prompt(
+                profile, user_role=character.user_role, user_identity=character.user_identity
+            ),
             chat_history(messages, turns), narrations(record, self._gift_catalog),
             now_prompt(
-                profile, now, timezone, in_call=in_call is not None, affinity_lines=affinity_lines
+                profile, now, timezone, in_call=in_call is not None, affinity_lines=affinity_lines,
+                user_role=character.user_role,
             ),
             retrieved, text, voiced_by,
-            CANNOT_SEND if eligibility is None else photo_asked and photo_asked.prompt,
+            (
+                CANNOT_SEND.replace("制作人", character.user_role)
+                if character.user_role is not None else CANNOT_SEND
+            ) if eligibility is None else photo_asked and photo_asked.prompt,
         )
 
         # Offered on every turn, so that what goes before the history (the tools, with

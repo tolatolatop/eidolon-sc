@@ -6,6 +6,7 @@
 // category's current value under its name (「设置：一级」).
 
 import { copy } from "@/i18n";
+import { isProjectSekai } from "@/lib/work";
 import type { Appearance } from "@/lib/appearance";
 import type { CallPreferences } from "@/lib/callPreferences";
 import { OWN_SERVICES, type OwnService } from "@/lib/localOwnKeys";
@@ -79,7 +80,7 @@ export type SettingsValues = {
   appearance: Appearance | null;
   /** The services this browser keeps the user's own key for. */
   ownServices: OwnService[] | null;
-  signInMethods: Provider[] | null;
+  signInMethods: (Provider | "private")[] | null;
 };
 
 /** The line under each category's name on the first level; a category without one (not read yet,
@@ -98,12 +99,12 @@ export function settingsSummaries(values: SettingsValues): Partial<Record<Settin
   if (memoryCount !== null) summaries.memories = memoryCount === 0 ? t.noMemories : t.memories(memoryCount);
   if (daysKnown !== null) summaries.stats = t.daysKnown(daysKnown);
   if (call) summaries.call = `${copy.settings.call.qualities[call.quality]} · ${call.phoneTexture ? t.phoneTextureOn : t.phoneTextureOff}`;
-  if (appearance) summaries.appearance = appearance.scspAvatars ? t.scspAvatarsOn : t.scspAvatarsOff;
+  if (appearance && !isProjectSekai) summaries.appearance = appearance.scspAvatars ? t.scspAvatarsOn : t.scspAvatarsOff;
   if (ownServices) {
     const owned = OWN_SERVICES.filter((service) => ownServices.includes(service));
     summaries["own-keys"] =
       owned.length === 0 ? t.ownKeysNone : t.ownKeys(owned.map((service) => copy.ownServices[service]).join(copy.serviceList.separator));
   }
-  if (signInMethods) summaries["sign-in"] = signInMethods.map((provider) => PROVIDER_LABELS[provider]).join("、");
+  if (signInMethods) summaries["sign-in"] = signInMethods.map((provider) => provider === "private" ? copy.login.privatePassword : PROVIDER_LABELS[provider]).join("、");
   return summaries;
 }

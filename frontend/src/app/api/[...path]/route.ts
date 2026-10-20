@@ -24,6 +24,7 @@ async function forward(request: Request, { params }: { params: Promise<{ path: s
     duplex: "half", // a stream as the body, sent while it is still being read
     cache: "no-store",
     redirect: "manual", // the browser follows the backend's redirects itself
+    signal: request.signal, // read-aloud stop/navigation must cancel the upstream too
   };
   const res = await fetch(url, init);
 

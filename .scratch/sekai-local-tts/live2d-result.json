@@ -1,0 +1,21 @@
+{
+  "ticket": "02-live2d-model",
+  "status": "done",
+  "backend_tests": 28,
+  "frontend_tests": 18,
+  "checks": [
+    "typecheck",
+    "ruff",
+    "py_compile",
+    "discipline",
+    "diff-check"
+  ],
+  "production_build": true,
+  "playwright": true,
+  "deploy": true,
+  "private_assets_in_git": false,
+  "csp_changed": false,
+  "integration_acceptance": "passed",
+  "integrated_backend_tests": 177,
+  "integrated_frontend_tests": 580
+}

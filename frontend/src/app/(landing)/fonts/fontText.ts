@@ -5,7 +5,8 @@
 
 import { readFileSync } from "node:fs";
 
-import { copy } from "@/i18n";
+import { zh as copy } from "@/i18n/zh";
+import { projectSekai } from "@/i18n/projectSekai";
 import { PROVIDER_LABELS } from "@/lib/signIn";
 
 const CHARACTERS = new URL("../../../../../characters/", import.meta.url);
@@ -71,6 +72,10 @@ export function landingText(): string {
     ...strings(copy.landing),
     ...strings(copy.legal),
     ...strings(copy.login),
+    ...strings(projectSekai.app),
+    ...strings(projectSekai.login),
+    ...strings(projectSekai.legal),
+    ...strings(copy.privateLanding),
     ...Object.values(PROVIDER_LABELS),
     ...characterNames(),
     ...greetingJapanese(),

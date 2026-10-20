@@ -36,6 +36,10 @@ her romaji, which is not how Danbooru writes every name; and her looks as tags
 (`photo_appearance`): hair colour, hairstyle, eye colour, no accessories nor clothes. She
 sends no photos without both.
 
+Optionally, her current user context has a role (`user_role`) and full identity
+(`user_identity`), both nonempty single lines. Without both, the original producer
+identity remains the default; a partial configuration is rejected.
+
 She likes one to three gifts in the gift catalog (`liked_gifts`, by gift identifier),
 each with her sources behind it in her facts' sources file (「喜欢的礼物」). Whether they
 are in the catalog is checked once both are loaded (`gift_catalog.check_liked_gifts`).
@@ -158,6 +162,10 @@ class Character:
     """Her character tag as Danbooru writes it, e.g. `sakuragi mano`, for her photos."""
     photo_appearance: str | None = None
     """Her looks as tags, e.g. `brown hair, medium hair, brown eyes`, for her photos."""
+    user_role: str | None = None
+    """What the user is called in current context, paired with `user_identity`."""
+    user_identity: str | None = None
+    """Who the user is in current context; absent, the original producer identity stands."""
 
     @property
     def photographed(self) -> bool:
@@ -248,6 +256,7 @@ def _parse_character(
     avatar = _optional_file(entry, "avatar", base, label)
     background = _optional_file(entry, "background", base, label)
     scsp_avatar = _optional_file(entry, "scsp_avatar", base, label)
+    user_role, user_identity = _user_identity(entry, label)
 
     idol_id = entry.get("idol_id")
     # bool is an int in Python, but `idol_id = true` is a mistake all the same.
@@ -288,7 +297,26 @@ def _parse_character(
         liked_gifts=tuple(liked_gifts),
         photo_tag=_other_name(entry, "photo_tag", label),
         photo_appearance=_other_name(entry, "photo_appearance", label),
+        user_role=user_role,
+        user_identity=user_identity,
     )
+
+
+def _user_identity(entry: dict, label: str) -> tuple[str | None, str | None]:
+    """A custom current identity has both a role and its full description."""
+    fields = ("user_role", "user_identity")
+    if not any(field in entry for field in fields):
+        return None, None
+    for field in fields:
+        value = entry.get(field)
+        if not (
+            isinstance(value, str) and value.strip() and value.splitlines() == [value]
+        ):
+            raise CharacterConfigError(
+                f"角色 {label} 的 user_role 和 user_identity 须同时配置为不空的单行字符串，"
+                f"现在 {field} 是 {value!r}"
+            )
+    return entry["user_role"].strip(), entry["user_identity"].strip()
 
 
 def _other_name(entry: dict, field: str, label: str) -> str | None:
